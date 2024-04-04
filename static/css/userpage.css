@@ -1,0 +1,66 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0; /* Remove default body margin */
+}
+.container {
+    display: flex;
+    text-align: center;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+table {
+    border-collapse: collapse;
+    width: 80%; /* Adjust the width as needed */
+    border: 2px solid #ccc;
+    background-color: #fff;
+    table-layout: fixed; /* Ensures uniform column width */
+}
+
+th, td {
+    border: 2px solid #000; /* Bolder border */
+    padding: 15px; /* Increased padding */
+    text-align: center;
+    width: 10%; /* Adjust column width as needed */
+}
+
+th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+td:first-child {
+    text-align: right;
+}
+.legend {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.legend span {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+}
+
+.available {
+    background-color: green;
+}
+
+.reserved {
+    background-color: purple;
+}
+
+.your-reservations {
+    background-color: yellow;
+}

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timetable</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/userpage.css') }}">
+    
+</head>
+<body>
+    <div class="container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    {% for time_slot in time_slots %}
+                        <th>{{ time_slot }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for room in room_data %}
+                    <tr>
+                        <td>{{ room.name }}</td>
+                        {% for time_slot in time_slots %}
+                            <td> <!-- Populate cell with room availability or other data --> </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="legend">
+            <span class="available"></span> Available &nbsp;&nbsp;&nbsp;&nbsp;
+            <span class="reserved"></span> Reserved &nbsp;&nbsp;&nbsp;&nbsp;
+            <span class="your-reservations"></span> Your Reservations
+        </div>
+    </div>
+</body>
+</html>
