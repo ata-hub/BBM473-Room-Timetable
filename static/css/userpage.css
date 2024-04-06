@@ -64,3 +64,21 @@ td:first-child {
 .your-reservations {
     background-color: yellow;
 }
+
+.date-section {
+    text-align: left;
+    margin-bottom: 10px;
+}
+
+.today-date {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.buttons {
+    margin-top: 5px;
+}
+
+.buttons button {
+    margin-right: 5px;
+}
