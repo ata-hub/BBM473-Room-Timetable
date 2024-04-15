@@ -9,6 +9,14 @@
 </head>
 <body>
     <div class="container">
+        <div class="date-section">
+            <div class="today-date" id="today-date"> <!-- Today's date will be inserted here dynamically using JavaScript --></div>
+            <div class="buttons">
+                <input type="date" id="selected-date">
+                <button id="prev-day">&lt;</button>
+                <button id="next-day">&gt;</button>
+            </div>
+        </div>
         <table>
             <thead>
                 <tr>
@@ -36,5 +44,6 @@
             <span class="your-reservations"></span> Your Reservations
         </div>
     </div>
+    <script src="{{ url_for('static', filename='javascript/userpage.js') }}"></script>
 </body>
 </html>
