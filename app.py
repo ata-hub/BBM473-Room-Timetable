@@ -15,12 +15,28 @@ room_data = [
     {"name": "Room 3"}
 ]
 
-@app.route('/mainpage')
-def userpage():
+@app.route('/student')
+def studentPage():
     # Define time slots
     time_slots = [f"{hour}:00" for hour in range(8, 20)]
+    return render_template('student.html', room_data=room_data, time_slots=time_slots, is_student=True)
 
-    return render_template('userpage.html', room_data=room_data, time_slots=time_slots)
+@app.route('/instructor')
+def instructorPage():
+    # Define time slots
+    time_slots = [f"{hour}:00" for hour in range(8, 20)]
+    return render_template('instructor.html', room_data=room_data, time_slots=time_slots, is_instructor=True)
+
+@app.route('/admin')
+def adminPage():
+    # Define time slots
+    time_slots = [f"{hour}:00" for hour in range(8, 20)]
+    return render_template('admin.html', room_data=room_data, time_slots=time_slots, is_admin=True)
+
+@app.route('/events')
+def eventsPage():
+    
+    return render_template('events.html', username = username)
 
 if __name__ == "__main__":
     app.run(debug=True)

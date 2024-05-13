@@ -1,13 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timetable</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/userpage.css') }}">
+<!-- student.html -->
+
+{% extends "base.html" %}
+
+{% block head %}
+    <title>Student Page</title>
+    {{ super() }}
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/student.css') }}">
     
-</head>
-<body>
+{% endblock %}
+
+{% block body %}
+    
     <div class="container">
         <div class="date-section">
             <div class="today-date" id="today-date"> <!-- Today's date will be inserted here dynamically using JavaScript --></div>
@@ -44,6 +47,11 @@
             <span class="your-reservations"></span> Your Reservations
         </div>
     </div>
-    <script src="{{ url_for('static', filename='javascript/userpage.js') }}"></script>
-</body>
-</html>
+    <script>
+        var isStudent = "{{ is_student }}"; // Embed is_student variable from Flask
+        var username = "{{ username }}"; // Embed username variable from Flask
+        var department = "{{ department }}"; // Embed department variable from Flask
+    </script>
+    <script src="{{ url_for('static', filename='javascript/student.js') }}"></script>
+{% endblock %}
+{% block is_student %}True{% endblock %}
