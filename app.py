@@ -1,8 +1,10 @@
-from flask import Flask, render_template, url_for, request, session
+from flask import Flask, render_template, url_for, request, session, redirect
 from flask_sqlalchemy import SQLAlchemy
 from service import UserService
+import os
 
 app = Flask(__name__)
+app.secret_key = os.urandom(24)
 
 user_service = UserService()
 
@@ -39,6 +41,23 @@ def login():
 def give_permission(): 
     data = request.form  
     return user_service.give_permission(data)
+
+@app.route('/list-permission-requests', methods=['GET'])
+def list_permission_requests(): 
+    return user_service.list_awating_permission_requests()
+
+@app.route('/request-permission', methods=['POST'])
+def request_permission(): 
+    data = request.form  
+    return user_service.request_permission(data)
+
+@app.route('/list-feature-requests', methods=['GET'])
+def list_feature_requests(): 
+    return user_service.list_awating_feature_requests()
+
+@app.route('/logout', methods=['POST'])
+def logout(): 
+    return redirect(url_for('login'))   #TODO ???
 
 if __name__ == "__main__":
     app.run(port=6000, debug=True)
