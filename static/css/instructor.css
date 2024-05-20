@@ -1,0 +1,81 @@
+/* student.css */
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto; /* Center the container horizontally */
+}
+
+.sidebar-content {
+    display: flex;
+}
+
+.sidebar {
+    width: 250px;
+    height: 100%;
+    background-color: #333;
+    color: #fff;
+    padding: 20px;
+    box-sizing: border-box;
+    transition: width 0.3s ease; /* Transition for smooth opening/closing */
+    z-index: 1000; /* Ensure sidebar overlays other content */
+}
+
+.content {
+    flex: 1; /* Fill remaining space */
+    padding: 20px; /* Adjust padding as needed */
+}
+
+.legend {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.legend span {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+}
+
+.available {
+    background-color: green;
+}
+
+.reserved {
+    background-color: purple;
+}
+
+.your-reservations {
+    background-color: yellow;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%; /* Occupy entire width */
+    border: 2px solid #ccc;
+    background-color: #fff;
+    table-layout: fixed; /* Ensures uniform column width */
+    margin-bottom: 20px;
+}
+
+th, td {
+    border: 2px solid #000; /* Bolder border */
+    padding: 15px; /* Increased padding */
+    text-align: center;
+}
+
+th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+td:first-child {
+    text-align: right;
+}

@@ -1,5 +1,3 @@
-<!-- base.html -->
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -20,67 +18,45 @@
     />
   </head>
   <body>
-    <!-- Sidebar -->
     <div class="wrapper">
-      <!-- Sidebar  -->
       <nav id="sidebar">
         <div class="sidebar-header">
           <h3>Bootstrap Sidebar</h3>
         </div>
-
         <ul class="list-unstyled components">
-          <p>Dummy Heading</p>
-          <li class="active">
-            <a
-              href="#homeSubmenu"
-              data-toggle="collapse"
-              aria-expanded="false"
-              class="dropdown-toggle"
-              >Home</a
+          {% if user_role == 'student' %}
+          <li>
+            <a href="#">Reserve Room</a>
+          </li>
+          <li>
+            <a href="#">Room Permissions</a>
+          </li>
+          {% elif user_role == 'instructor' %}
+          <li>
+            <a href="#">Reserve Room</a>
+          </li>
+          <li>
+            <a href="#" data-toggle="modal" data-target="#featureRequestModal"
+              >Feature Request</a
             >
-            <ul class="collapse list-unstyled" id="homeSubmenu">
-              <li>
-                <a href="#">Home 1</a>
-              </li>
-              <li>
-                <a href="#">Home 2</a>
-              </li>
-              <li>
-                <a href="#">Home 3</a>
-              </li>
-            </ul>
           </li>
           <li>
-            <a href="#">About</a>
-          </li>
-          <li>
-            <a
-              href="#pageSubmenu"
-              data-toggle="collapse"
-              aria-expanded="false"
-              class="dropdown-toggle"
-              >Pages</a
+            <a href="#" data-toggle="modal" data-target="#studentRequestModal"
+              >Student Request</a
             >
-            <ul class="collapse list-unstyled" id="pageSubmenu">
-              <li>
-                <a href="#">Page 1</a>
-              </li>
-              <li>
-                <a href="#">Page 2</a>
-              </li>
-              <li>
-                <a href="#">Page 3</a>
-              </li>
-            </ul>
+          </li>
+          {% elif user_role == 'admin' %}
+          <li>
+            <a href="#">Reserve Room</a>
           </li>
           <li>
-            <a href="#">Portfolio</a>
+            <a href="#">Pending Feature Requests</a>
           </li>
           <li>
-            <a href="#">Contact</a>
+            <a href="#">Pending Student Requests</a>
           </li>
+          {% endif %}
         </ul>
-
         <ul class="list-unstyled CTAs">
           <li>
             <a
@@ -98,8 +74,6 @@
           </li>
         </ul>
       </nav>
-
-      <!-- Page Content  -->
       <div id="sidebarcontent">
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
           <div class="container-fluid">
@@ -118,7 +92,6 @@
             >
               <i class="fas fa-align-justify"></i>
             </button>
-
             <div
               class="collapse navbar-collapse"
               id="navbarSupportedContent"
@@ -129,12 +102,154 @@
       <div class="content">{% block body %}{% endblock %}</div>
     </div>
 
-    <!-- Page content -->
+    <!-- Student Request Modal -->
+    <div
+      class="modal fade"
+      id="studentRequestModal"
+      tabindex="-1"
+      aria-labelledby="studentRequestModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="studentRequestModalLabel">
+              Student Request
+            </h5>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form id="studentRequestForm">
+              <div class="form-group">
+                <label for="studentUsername">Student Username</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="studentUsername"
+                  name="studentUsername"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="studentRoom">Room</label>
+                <select
+                  class="form-control"
+                  id="studentRoom"
+                  name="studentRoom"
+                  required
+                >
+                  <option value="Room 1">Room 1</option>
+                  <option value="Room 2">Room 2</option>
+                  <option value="Room 3">Room 3</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-success">Submit</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <!-- Include the sidebar JavaScript -->
+    <!-- Feature Request Modal -->
+    <div
+      class="modal fade"
+      id="featureRequestModal"
+      tabindex="-1"
+      aria-labelledby="featureRequestModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="featureRequestModalLabel">
+              Feature Request
+            </h5>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form id="featureRequestForm">
+              <div class="form-group">
+                <label for="feature">Feature</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="feature"
+                  name="feature"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="featureRoom">Room</label>
+                <select
+                  class="form-control"
+                  id="featureRoom"
+                  name="featureRoom"
+                  required
+                >
+                  <option value="Room 1">Room 1</option>
+                  <option value="Room 2">Room 2</option>
+                  <option value="Room 3">Room 3</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-success">Submit</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div
+      class="modal fade"
+      id="successModal"
+      tabindex="-1"
+      aria-labelledby="successModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-body text-center text-success">
+            <i class="fas fa-check-circle fa-3x"></i>
+            <h4>Your request was sent successfully!</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Failure Modal -->
+    <div
+      class="modal fade"
+      id="failureModal"
+      tabindex="-1"
+      aria-labelledby="failureModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-body text-center text-danger">
+            <i class="fas fa-times-circle fa-3x"></i>
+            <h4>Your request failed. Please try again.</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- Bootstrap JS -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ url_for('static', filename='javascript/sidebar.js') }}"></script>
+    <script src="{{ url_for('static', filename='javascript/main.js') }}"></script>
   </body>
 </html>
