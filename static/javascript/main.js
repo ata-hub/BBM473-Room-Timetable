@@ -42,4 +42,20 @@ $(document).ready(function() {
             }
         });
     });
+    $('#reserveRoomForm').on('submit', function (e) {
+        e.preventDefault();
+        const startHour = $('#startTimeHour').val();
+        const startMinute = $('#startTimeMinute').val();
+        const endHour = $('#endTimeHour').val();
+        const endMinute = $('#endTimeMinute').val();
+    
+        // Perform any validation or AJAX request here
+    
+        console.log(`Start Time: ${startHour}:${startMinute}`);
+        console.log(`End Time: ${endHour}:${endMinute}`);
+    
+        // For example, show success modal after form submission
+        $('#reserveRoomModal').modal('hide');
+        $('#successModal').modal('show');
+      });
 });

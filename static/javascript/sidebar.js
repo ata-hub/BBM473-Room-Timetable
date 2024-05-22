@@ -25,14 +25,4 @@ document.addEventListener("DOMContentLoaded", function() {
         // Select the link with the specified URL and set its display style to "block"
         //document.querySelector("a[href='{{ url_for('feature_request') }}']").style.display = "block";
     }
-
-
-    
-    
-
-    
-    
-
-    
-    
 });
