@@ -1,12 +1,13 @@
 from flask import Flask, render_template, url_for, request, session, redirect
 from flask_sqlalchemy import SQLAlchemy
-from service import UserService
+from service import UserService, RoomService
 import os
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
 user_service = UserService()
+room_service = RoomService()
 
 # @app.route("/")
 
@@ -58,6 +59,59 @@ def list_feature_requests():
 @app.route('/logout', methods=['POST'])
 def logout(): 
     return redirect(url_for('login'))   #TODO ???
+
+@app.route('/features', methods=['GET'])
+def features(): 
+    return room_service.list_features()
+
+@app.route('/request-feature', methods=['POST'])
+def request_feature():
+    data = request.form
+    return room_service.request_feature(data)
+
+@app.route('/add-feature', methods=['POST'])
+def add_new_feature():
+    data = request.form
+    return room_service.add_new_feature(data["name"])
+
+@app.route('/make-reservation', methods=['POST'])
+def make_reservation():
+    data = request.form
+    return room_service.make_reservation(data)
+
+@app.route('/recurring-reservation', methods=['POST'])
+def make_recurring_reservation():
+    data = request.form
+    return room_service.make_recurring_reservation(data)
+
+@app.route('/reservations', methods=['GET'])
+def list_reservation():
+    return room_service.list_user_reservations()
+
+@app.route('/cancel', methods=['DELETE'])
+def cancel_reservation():
+    data = request.form
+    return room_service.cancel_reservation(data["event_id"])
+
+@app.route('/suggestions', methods=['GET'])
+def get_suggestions():
+    data = request.form
+    return room_service.make_suggestion(data)
+
+@app.route('/recurring-suggestions', methods=['GET'])
+def get_recurring_suggestions():
+    data = request.form
+    return room_service.make_recurring_suggestion(data)
+
+@app.route('/timetable', methods=['GET'])
+def get_timetable():
+    data = request.form
+    return room_service.get_timetable(data)
+
+@app.route('/export-timetable', methods=['GET'])
+def export_timetable():
+    data = request.form
+    return room_service.export_timetable(data)
 
 if __name__ == "__main__":
     app.run(port=6000, debug=True)
