@@ -28,7 +28,7 @@ def userpage():
 
     return render_template('userpage.html', room_data=room_data, time_slots=time_slots)
 
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=['POST']) #TODO add jwt time
 def login(): 
     data = request.form  #TODO this can change later
     login_data = user_service.login(data)
