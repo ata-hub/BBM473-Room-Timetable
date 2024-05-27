@@ -11,6 +11,8 @@ declare
 	new_room integer :=  %(room)s;
 	curr_user text :=  %(curr_user)s;
     event_id integer := %(event_id)s;
+	new_event_title text := %(event_title)s;
+	new_event_description text := %(event_description)s;
 	room_dept_id integer;
 	user_role text;
 	can_book boolean;

@@ -12,7 +12,7 @@ declare
 	new_end_day date := %(new_end_day)s;
 	new_room integer :=  %(new_room)s;
 	curr_user text :=  %(curr_user)s;
-	new_interval integer := %(new_interval)s;
+	old_interval integer := %(old_interval)s;
     event_id integer: %(event_id)s;
 	start_day_copy date := new_start_day;
 	room_dept_id integer;
@@ -37,7 +37,7 @@ begin
 			exit;
 		end if;
 	
-		start_day_copy := start_day_copy + new_interval;
+		start_day_copy := start_day_copy + old_interval;
 	end loop;
 	
 	if start_not_available = true or end_not_available = true then 

@@ -2,7 +2,7 @@ from db import get_db_connection
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from flask import jsonify, session
-from datetime import datetime, time
+from datetime import datetime, time, timedelta, date
 import pandas as pd
 import csv
 import  jpype     
@@ -16,8 +16,8 @@ from email.mime.text import MIMEText
 
 class MyException(Exception):
     pass
-
-class UserService(): 
+# TODO turn all errors to booleans
+class UserService(): #TODO test all of this service and return types
     # frontend -> backend: username, password 
     def login(self, userDto):
         username = userDto['username']
@@ -35,17 +35,21 @@ class UserService():
             conn.close()
             raise MyException('This user does not exist or is not allowed to enter this website.')
         
-    #TODO frontend -> backend: permission_request_id, acceptance TODO : sonra request tabeldan da sil
+    # frontend -> backend: permission_request_id, acceptance 
     # backend -> frontend: sonuç
-    def give_permission(self, permissionDto):   # for admin  
-        username = permissionDto['username']
-        room_id = permissionDto['room']
+    def give_permission(self, permissionDto):   # for admin 
+        permission_id = permissionDto["id"]
+        acceptance = permissionDto["acceptance"] 
         conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         current_user_role = session.get('role')
-        print(session.get)
+        
+        cursor.execute("SELECT * FROM room_permission_requests WHERE request_id = %s", (permission_id, ))
+        permission = jsonify(cursor.fetchone())
+        username = permission["username"]
+        room_id = permission["room_id"]
 
-        if current_user_role == 'admin':
+        if current_user_role == 'admin' and acceptance:
             cursor.execute('SELECT * FROM users WHERE username = %s', (username, ))
             user_exists = cursor.fetchone()
 
@@ -70,10 +74,14 @@ class UserService():
 
             if cursor.rowcount != 1:
                 raise MyException("Can't give permission for a room in another department other than the student's own department")
+            
+            cursor.execute("DELETE FROM room_permission_requests WHERE request_id = %s", (permission_id, ))
 
             conn.close()
             return 'Permission given.'
         
+        
+
         conn.close()
         raise MyException('This user is not allowed to give permissions.')
 
@@ -118,13 +126,39 @@ class UserService():
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         print("DEPARTMENT: ", department)
         # filter permissons by admin's department
-        cursor.execute("""SELECT fr.room_id, fr.feature_id, fr.description 
+        cursor.execute("""SELECT fr.request_id, fr.room_id, fr.feature_id, fr.description 
                        FROM feature_requests fr, rooms r 
                        WHERE fr.room_id = r.room_id AND r.department_id = %s""", (department, ))
         permissions = cursor.fetchall()
         return permissions
 
-    #def get_user_rooms(self):   #TODO kullanıcının erişimi olan odalar
+    def get_user_rooms(self):   
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        user_department = session.get('department')
+        user = session.get('username')
+        role = session.get('role')
+        rooms = []
+
+        if role == 'student': 
+            cursor.execute("""SELECT r.name FROM user_permissions up, rooms r 
+                           WHERE up.room_id = r.room_id
+                           AND username = %s""", (user, ))
+            rooms = cursor.fetchall()
+
+        elif role == 'instructor':
+            cursor.execute("SELECT name FROM rooms WHERE department_id = %s", (user_department, ))
+            rooms = cursor.fetchall()
+
+        else:
+            cursor.execute("""SELECT d.name AS dname, r.name AS rname FROM rooms r, departments d
+                           WHERE r.department_id = d.department_id
+                           """)
+            
+            room_data = cursor.fetchall()
+            rooms = [(str(item["dname"]) + " - " + str(item["rname"])) for item in room_data]
+
+        return rooms
 
     def logout(self):
         session.clear()
@@ -134,38 +168,136 @@ def read_sql_file(file_path):
     with open(file_path, 'r') as file:
         sql = file.read()
     return sql
+
+def change_date_format(date):   #turns dd-mm-yyyy to mm-dd-yyyy
+    day = date.split("-")[0]
+    month = date.split("-")[1]
+
+    return month + "-" + day + "-" + date.split("-")[-1]
+
+def calculate_interval(event_id):  
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+    tx_sql = read_sql_file("./sql/calculate_interval.sql")
+    cursor.execute(tx_sql, {
+        "event_var": event_id
+    })
+
+    interval = cursor.fetchone()["date_diff"]
+    return interval
     
-class RoomService(): # TODO test all of this service
+class RoomService(): # TODO test all of this service and return types
+    def list_room_details(self): 
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        user_department = session.get('department')
+        user = session.get('username')
+        role = session.get('role')
+        rooms = []
+
+        if role == 'student': 
+            cursor.execute("""SELECT r.name, r.capacity, r.type, f.name, rf.is_working
+                           FROM user_permissions up, rooms r, room_features rf, features f
+                           WHERE up.room_id = r.room_id
+                           AND r.room_id = rf.room_id 
+                           AND rf.feature_id = f.feature_id
+                           AND username = %s""", (user, ))
+            rooms = cursor.fetchall()
+
+        elif role == 'instructor':
+            cursor.execute("""SELECT r.name, r.capacity, r.type, f.name, rf.is_working 
+                           FROM rooms r, room_features rf, features f 
+                           WHERE r.room_id = rf.room_id
+                           AND rf.feature_id = f.feature_id
+                           AND r.department_id = %s""", (user_department, ))
+            rooms = cursor.fetchall()
+
+        else:
+            cursor.execute("""SELECT d.name AS departmant_name, r.name AS room_name, r.capacity, r.type, f.name, rf.is_working 
+                           FROM rooms r, departments d, room_features rf, features f 
+                           WHERE r.department_id = d.department_id
+                           AND r.room_id = rf.room_id
+                           AND rf.feature_id = f.feature_id""")
+            
+            room_data = cursor.fetchall()
+            rooms = [(str(item["dname"]) + " - " + str(item["rname"])) for item in room_data]
+
+        return rooms
     # backend -> frontend: liste
     def list_features(self): # this is for listing all possible features for request
         conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
-        cursor.execute("SELECT name FROM features")
+        cursor.execute("SELECT name, feature_id FROM features")
         features = cursor.fetchall()
         return features  #TODO turn to list
 
     # frontend -> backend: description, feature_id, room_id
     # backend -> frontend: boolean?
+    # ÖNEMLİ: logic şu şekilde: eğer feature zaten olan bir şeyse, is_working false'a çekilecek
+    # ama yeni istenen bir şeyse bu ***description*** yazılacak ve sonra admin onaylarsa 
+    # features table ına düşecek
     def request_feature(self, featureDto):    # for inst (in the future student too)
         description = featureDto["description"]
         feature_id = featureDto["feature_id"]
         room_id = featureDto["room_id"]
+        new_feature = featureDto["new_feature"]
 
+        tx_sql = read_sql_file('./sql/request_old_feature.sql')
         conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
-        cursor.execute("""INSERT INTO feature_requests(description, feature_id, room_id) 
-                       VALUES (%s, %s, %s)""", (description, feature_id, room_id))
-        conn.commit()
+
+        if feature_id:   #bu çalışacak mı null olursa?
+            cursor.execute(tx_sql, {   
+                'feature_id': feature_id,
+                'description': description,
+                'room_id': room_id
+            }) 
+            conn.commit()
+        elif new_feature:  
+            cursor.execute("""INSERT INTO feature_requests (description, room_id)
+                           VALUES (%s, %s)""", (description, room_id))
+            conn.commit()
+        
         conn.close()
-        return "Feature requested."
+        return "Feature requested."  
     
-    # frontend -> backend: feature_id, acceptance TODO (ekle) - sonra request tabeldan da sil
+    # frontend -> backend: feature_id, acceptance 
     # backend -> frontend: boolean?
-    def add_new_feature(self, feature):   # for admin
+    def add_new_feature(self, requestDto):   # for admin
+        request_id = requestDto["request_id"]
+        acceptance = requestDto["acceptance"]
         conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
-        cursor.execute("INSERT INTO features(name) VALUES(%s)", (feature,))
-        conn.commit()
+
+        # eğer bu features tableında varsa -room_featuresda workinge çevir
+        # eğer yoksa bir de featuresa ekle
+        if acceptance:
+            cursor.execute("""SELECT *  FROM feature_requests 
+                           WHERE request_id = %s""", (request_id, ))
+            
+            request = cursor.fetchone()
+
+            if request["feature_id"]:  # if adding existing feature
+                tx_sql = read_sql_file("./sql/add_existing_feature.sql")
+
+                cursor.execute(tx_sql, {
+                    'feature_id': request["feature_id"],
+                    'room_id':request["room_id"]
+                })
+
+                conn.commit()
+            else:
+                tx_sql = read_sql_file("./sql/add_new_feature.sql")
+
+                cursor.execute(tx_sql, {
+                    'feature_id': request["description"],
+                    'room_id':request["room_id"]
+                })
+
+                conn.commit()
+
+        cursor.execute("DELETE FROM feature_requests WHERE request_id = %s", (request_id, ))
         conn.close()
         return "Added new feature."
         
@@ -175,9 +307,9 @@ class RoomService(): # TODO test all of this service
         user = session.get('username')
         event_title = reservationDto['title']
         event_description = reservationDto['description']
-        start_time = reservationDto['start_time'] + ":00"   #TODO bu time ve date kısmı frontendden nasıl geldiğine bağlı
-        end_time = reservationDto['end_time'] +":00"        # date i mm-dd-yyyy girmek gerekiyor
-        day = reservationDto['day']
+        start_time = reservationDto['start_time'] + ":00"   
+        end_time = reservationDto['end_time'] +":00"        
+        day = change_date_format(reservationDto['day'])
         room = reservationDto['room'] 
 
         tx_sql = read_sql_file('./sql/booking_tx.sql')
@@ -199,7 +331,15 @@ class RoomService(): # TODO test all of this service
             return jsonify({'status': 'success', 'message': 'Reservation made.'})
         except psycopg2.Error as e:
             conn.rollback()
-            return jsonify({'status': 'error', 'message': str(e)})
+
+            if e == "this timeslot is taken":
+                suggestionDto = {key: value for key, value in reservationDto.items() if key in {
+                'start_time', 'end_time', 'day', 'room'}}
+
+                suggestions = self.make_suggestion(suggestionDto)
+                return suggestions
+            else:
+                return jsonify({'status': 'error', 'message': str(e)})
         finally:
             cursor.close()
             conn.close()
@@ -210,8 +350,8 @@ class RoomService(): # TODO test all of this service
         event_description = reservationDto['description']
         start_time = reservationDto['start_time'] + ":00"   
         end_time = reservationDto['end_time'] +":00"
-        start_day = reservationDto['start_day']
-        end_day = reservationDto['end_day']
+        start_day = change_date_format(reservationDto['start_day'])
+        end_day = change_date_format(reservationDto['end_day'])
         room = reservationDto['room']
         interval = reservationDto['interval']
 
@@ -236,7 +376,15 @@ class RoomService(): # TODO test all of this service
             return jsonify({'status': 'success', 'message': 'Recurring reservation made.'})
         except psycopg2.Error as e:
             conn.rollback()
-            return jsonify({'status': 'error', 'message': str(e)})
+
+            if e == 'this timeslot is taken':
+                suggestionDto = {key: value for key, value in reservationDto.items() if key in {
+                'start_time', 'end_time', 'start_day', 'end_day', 'room', 'interval'}}
+
+                suggestions = self.make_recurring_suggestion(suggestionDto)
+                return suggestions
+            else:
+                return jsonify({'status': 'error', 'message': str(e)})
         finally:
             cursor.close()
             conn.close()
@@ -251,7 +399,9 @@ class RoomService(): # TODO test all of this service
                        FROM events e
                        INNER JOIN bookings b on b.event_id = e.event_id
                        INNER JOIN timeslots t on t.timeslot_id = b.timeslot_id
-                       WHERE e.organizer = %s""", (user,)) 
+                       WHERE e.organizer = %s
+                       ORDER BY t.date ASC,
+                       t.start_time ASC""", (user,))   
         
         reservations = cursor.fetchall()
 
@@ -298,7 +448,7 @@ class RoomService(): # TODO test all of this service
         user = session.get('username')
         new_to_start = changeDto["to_start"]
         new_to_end = changeDto["to_end"]
-        new_day = changeDto["day"]
+        new_day = change_date_format(changeDto["day"])
         new_room = changeDto["room"]
         event_id = changeDto["event_id"]
 
@@ -330,11 +480,11 @@ class RoomService(): # TODO test all of this service
             cursor.close()
             conn.close()
 
-    def make_suggestion(self, reservationDto):
+    def make_suggestion(self, reservationDto):   
         user = session.get('username')
         start_time = reservationDto['start_time'] + ":00"   
         end_time = reservationDto['end_time'] +":00"        
-        day = reservationDto['day']
+        day = change_date_format(reservationDto['day'])
         room = reservationDto['room']
 
         tx_sql = read_sql_file('./sql/make_suggestion_for_room_tx.sql')
@@ -360,15 +510,15 @@ class RoomService(): # TODO test all of this service
             cursor.close()
             conn.close()
 
-    def change_recurring_reservation(self, changeDto):
+    def change_recurring_reservation(self, changeDto): 
         user = session.get('username')
         new_to_start = changeDto["to_start"]
         new_to_end = changeDto["to_end"]
-        new_start_day = changeDto["start_day"]
-        new_end_day = changeDto["end_day"]
+        new_start_day = change_date_format(changeDto["start_day"])
+        new_end_day = change_date_format(changeDto["end_day"])
         new_room = changeDto["room"]
-        new_interval = changeDto["interval"]   # TODO bunu kaldır
         event_id = changeDto["event_id"]
+        old_interval = calculate_interval(event_id)   
 
         tx_sql = read_sql_file('./sql/change_recurring_booking_tx.sql')
         conn = get_db_connection()
@@ -382,7 +532,7 @@ class RoomService(): # TODO test all of this service
                 'new_end_day': new_end_day,
                 'new_room': new_room,
                 'curr_user': user,
-                'new_interval': new_interval,
+                'old_interval': old_interval,
                 'event_id': event_id
             })
 
@@ -400,7 +550,7 @@ class RoomService(): # TODO test all of this service
             cursor.close()
             conn.close()
 
-    def change_event_details(self, eventDto):   # TODO   bunu diğer changelerle birleştir
+    def change_event_details(self, eventDto):  
         title = eventDto["title"]
         description = eventDto["description"]
         event_id = eventDto["event_id"]
@@ -418,12 +568,12 @@ class RoomService(): # TODO test all of this service
         return 'Event details changed.'
 
     # backend - frontend: possible room listesi
-    def make_recurring_suggestion(self, reservationDto):
+    def make_recurring_suggestion(self, reservationDto): 
         user = session.get('username')
         start_time = reservationDto['start_time'] + ":00"   
         end_time = reservationDto['end_time'] +":00"
-        start_day = reservationDto['start_day']
-        end_day = reservationDto['end_day']
+        start_day = change_date_format(reservationDto['start_day'])
+        end_day = change_date_format(reservationDto['end_day'])
         room = reservationDto['room']
         interval = reservationDto['interval']
 
@@ -535,11 +685,20 @@ class RoomService(): # TODO test all of this service
         booking = cursor.fetchone()
         return booking
     
-    # frontend -> backend: department, day ama guest değilse departmentı sessiondan çek
-    #TODO departmana ol 
+    # frontend -> backend: department, day ama guest değilse departmentı sessiondan çek 
     def get_timetable(self, timetableDto):    # anasayfada göstermek için -- start end date olabilir
-        start = timetableDto['start']         # TODO bunun için logine gerek olmamalı
-        end = timetableDto['end']             
+        start = timetableDto['start']         
+        end = timetableDto['end']  
+
+        if start is None or end is None:
+            today = date.today()
+            start = today - timedelta(days=today.weekday())
+            end = start + timedelta(days=6)
+
+        if timetableDto["department"]:  
+            department = timetableDto["department"]
+        else:
+            department = session.get('department')         
 
         conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
@@ -548,13 +707,65 @@ class RoomService(): # TODO test all of this service
                        FROM events e
                        INNER JOIN bookings b on b.event_id = e.event_id
                        INNER JOIN timeslots t on t.timeslot_id = b.timeslot_id
-                       WHERE t.date BETWEEN %s::date AND %s::date""", (start, end))  # değiştir
+                       INNER JOIN rooms r on r.room_id = b.room_id
+                       WHERE t.date BETWEEN %s::date AND %s::date
+                       AND r.department_id = %s""", (start, end, department))  # bu düzgün çalışcak mı lol
         
         timetable = cursor.fetchall()
         return timetable
     
-    # def get_user_timetable(self): #TODO benim rezervasyonlar 
-    # def get_other_timetable(self):
+    def get_my_reservations(self, weekDto): 
+        user = session.get('username')
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+        start = weekDto['start']         
+        end = weekDto['end']  
+
+        if start is None or end is None:
+            today = date.today()
+            start = today - timedelta(days=today.weekday())
+            end = start + timedelta(days=6)
+
+        cursor.execute("""SELECT e.title, e.description, e.organizer, r.name, r.capacity, r.type,
+                       f.name, rf.is_working
+                       FROM events e, bookings b, rooms r, room_features rf, features f, timeslots t
+                       WHERE e.organizer = %s
+                       AND e.event_id = b.booking_id
+                       AND b.room_id = r.room_id 
+                       AND rf.room_id = r.room_id
+                       AND rf.feature_id = f.feature_id
+                       AND t.date BETWEEN %s AND %s""", (user, start, end))
+        
+        my_reservations = cursor.fetchall()
+        return my_reservations
+        
+    def get_other_reservarions(self, weekDto): 
+        user = session.get('username')
+        department  = session.get('department')
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+        start = weekDto['start']         
+        end = weekDto['end']  
+
+        if start is None or end is None:
+            today = date.today()
+            start = today - timedelta(days=today.weekday())
+            end = start + timedelta(days=6)
+
+        cursor.execute("""SELECT e.title, e.description, e.organizer, r.name, r.capacity, r.type,
+                       f.name, rf.is_working
+                       FROM events e, bookings b, rooms r, room_features rf, features f, timeslots t
+                       WHERE e.organizer = %s AND r.department_id = %s
+                       AND e.event_id = b.booking_id
+                       AND b.room_id = r.room_id 
+                       AND rf.room_id = r.room_id
+                       AND rf.feature_id = f.feature_id
+                       AND t.date BETWEEN %s AND %s""", (user, department, start, end))
+        
+        other_reservations = cursor.fetchall()
+        return other_reservations
 
     def export_timetable(self, timetableDto): # TODO test et
         start = timetableDto['start']  # gün 
