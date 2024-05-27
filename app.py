@@ -1,3 +1,4 @@
+import datetime
 from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 
@@ -8,6 +9,27 @@ users = {
     'instructor_user': {'password': 'instructorpass', 'role': 'instructor'},
     'admin_user': {'password': 'adminpass', 'role': 'admin'},
 }
+
+def get_dummy_reservations():
+    return [
+        {
+            'event_id': 1,
+            'title': 'Conference',
+            'description': 'Annual Conference',
+            'room_id': 101,
+            'start_time': datetime.datetime(2024, 6, 15, 9, 0),
+            'end_time': datetime.datetime(2024, 6, 15, 17, 0)
+        },
+        {
+            'event_id': 2,
+            'title': 'Workshop',
+            'description': 'Python Workshop',
+            'room_id': 202,
+            'start_time': datetime.datetime(2024, 6, 16, 10, 0),
+            'end_time': datetime.datetime(2024, 6, 16, 12, 0)
+        }
+        # Add more dummy bookings as needed
+    ]
 
 @app.route("/")
 
@@ -90,8 +112,10 @@ def pending_feature_requests():
 
 @app.route('/events')
 def eventsPage():
-    
-    return render_template('events.html', username = username)
+    # get reservation from backend service
+    reservationList = get_dummy_reservations()
+    #user_role = session.get('user_role')  # Adjust based on how you store the user role
+    return render_template('events.html', reservationList=reservationList) # TODO user_role=user_role bunu ekle
 
 if __name__ == "__main__":
     app.run(debug=True)
