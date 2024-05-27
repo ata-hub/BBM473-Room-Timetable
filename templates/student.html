@@ -1,0 +1,58 @@
+<!-- student.html -->
+
+{% extends "base.html" %} {% block head %}
+<title>Student Page</title>
+{{ super() }}
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="{{ url_for('static', filename='css/student.css') }}"
+/>
+
+{% endblock %} {% block body %}
+
+<div class="container">
+  <div class="date-section">
+    <div class="today-date" id="today-date">
+      <!-- Today's date will be inserted here dynamically using JavaScript -->
+    </div>
+    <div class="buttons">
+      <input type="date" id="selected-date" />
+      <button id="prev-day">&lt;</button>
+      <button id="next-day">&gt;</button>
+    </div>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Time</th>
+        {% for time_slot in time_slots %}
+        <th>{{ time_slot }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for room in room_data %}
+      <tr>
+        <td>{{ room.name }}</td>
+        {% for time_slot in time_slots %}
+        <td><!-- Populate cell with room availability or other data --></td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="legend">
+    <span class="available"></span> Available &nbsp;&nbsp;&nbsp;&nbsp;
+    <span class="reserved"></span> Reserved &nbsp;&nbsp;&nbsp;&nbsp;
+    <span class="your-reservations"></span> Your Reservations
+  </div>
+</div>
+<script>
+  var userRole = "{{ user_role }}"; // Embed is_student variable from Flask
+  var username = "{{ username }}"; // Embed username variable from Flask
+  var department = "{{ department }}"; // Embed department variable from Flask
+</script>
+<script src="{{ url_for('static', filename='javascript/student.js') }}"></script>
+{% endblock %} {% block is_student %}True{% endblock %}

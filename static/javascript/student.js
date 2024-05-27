@@ -1,4 +1,9 @@
 document.addEventListener("DOMContentLoaded", function() {
+    var userRole = "{{ user_role }}"; // Embed is_student variable from Flask
+    var username = "{{ username }}"; // Embed username variable from Flask
+    var department = "{{ department }}"; // Embed department variable from Flask
+
+
     // Function to get the day of the week
     function getDayOfWeek(date) {
         var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];

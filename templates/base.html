@@ -1,12 +1,358 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename = 'css/main.css')}}"
-    {% block head %}{% endblock %}
-</head>
-<body>
-    {% block body %}{% endblock %}
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block head %}{% endblock %}</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/main.css')}}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/sidebar.css')}}"
+    />
+  </head>
+  <body>
+    <div class="wrapper">
+      <nav id="sidebar">
+        <div class="sidebar-header">
+          <h3>Bootstrap Sidebar</h3>
+        </div>
+        <ul class="list-unstyled components">
+          {% if user_role == 'student' %}
+          <li>
+            <a href="#" data-toggle="modal" data-target="#reserveRoomModal"
+              >Reserve Room</a
+            >
+          </li>
+          <li>
+            <a href="#">Room Permissions</a>
+          </li>
+          {% elif user_role == 'instructor' %}
+          <li>
+            <a href="#" data-toggle="modal" data-target="#reserveRoomModal"
+              >Reserve Room</a
+            >
+          </li>
+          <li>
+            <a href="#" data-toggle="modal" data-target="#featureRequestModal"
+              >Feature Request</a
+            >
+          </li>
+          <li>
+            <a href="#" data-toggle="modal" data-target="#studentRequestModal"
+              >Student Request</a
+            >
+          </li>
+          {% elif user_role == 'admin' %}
+          <li>
+            <a href="#" data-toggle="modal" data-target="#reserveRoomModal"
+              >Reserve Room</a
+            >
+          </li>
+          <li>
+            <a href="#">Pending Feature Requests</a>
+          </li>
+          <li>
+            <a href="#">Pending Student Requests</a>
+          </li>
+          {% endif %}
+        </ul>
+        <ul class="list-unstyled CTAs">
+          <li>
+            <a
+              href="https://bootstrapious.com/tutorial/files/sidebar.zip"
+              class="download"
+              >Download Timetable</a
+            >
+          </li>
+        </ul>
+      </nav>
+      <div id="sidebarcontent">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+          <div class="container-fluid">
+            <button type="button" id="sidebarCollapse" class="btn btn-info">
+              <i class="fas fa-align-left"></i>
+              <span>Toggle Sidebar</span>
+            </button>
+            <button
+              class="btn btn-dark d-inline-block d-lg-none ml-auto"
+              type="button"
+              data-toggle="collapse"
+              data-target="#navbarSupportedContent"
+              aria-controls="navbarSupportedContent"
+              aria-expanded="false"
+              aria-label="Toggle navigation"
+            >
+              <i class="fas fa-align-justify"></i>
+            </button>
+            <div
+              class="collapse navbar-collapse"
+              id="navbarSupportedContent"
+            ></div>
+          </div>
+        </nav>
+      </div>
+      <div class="content">{% block body %}{% endblock %}</div>
+    </div>
+
+    <!-- Reserve Room Modal -->
+    <div
+      class="modal fade"
+      id="reserveRoomModal"
+      tabindex="-1"
+      aria-labelledby="reserveRoomModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="reserveRoomModalLabel">Reserve Room</h5>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form id="reserveRoomForm">
+              <div class="form-group">
+                <label for="eventDate">Date</label>
+                <input
+                  type="date"
+                  class="form-control"
+                  id="eventDate"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="startTimeHour">Start Time</label>
+                <div class="d-flex align-items-center">
+                  <select class="form-control mr-1" id="startTimeHour" required>
+                    {% for hour in range(8, 20) %}
+                    <option value="{{ hour }}">{{ hour }}</option>
+                    {% endfor %}
+                  </select>
+                  <span>:</span>
+                  <select
+                    class="form-control ml-1"
+                    id="startTimeMinute"
+                    required
+                  >
+                    <option value="00">00</option>
+                    <option value="30">30</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="endTimeHour">End Time</label>
+                <div class="d-flex align-items-center">
+                  <select class="form-control mr-1" id="endTimeHour" required>
+                    {% for hour in range(8, 20) %}
+                    <option value="{{ hour }}">{{ hour }}</option>
+                    {% endfor %}
+                  </select>
+                  <span>:</span>
+                  <select class="form-control ml-1" id="endTimeMinute" required>
+                    <option value="00">00</option>
+                    <option value="30">30</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="room">Room</label>
+                <select class="form-control" id="room" required>
+                  {% for room in room_data %}
+                  <option value="{{ room['name'] }}">{{ room['name'] }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="eventTitle">Event Title</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="eventTitle"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="eventDescription">Event Description</label>
+                <textarea
+                  class="form-control"
+                  id="eventDescription"
+                  rows="3"
+                  required
+                ></textarea>
+              </div>
+              <div class="form-group">
+                <label for="eventRepeat">Repeat</label>
+                <select class="form-control" id="eventRepeat" required>
+                  <option value="today">Today</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly">Monthly</option>
+                  <option value="yearly">Yearly</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-primary">Reserve</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Student Request Modal -->
+    <div
+      class="modal fade"
+      id="studentRequestModal"
+      tabindex="-1"
+      aria-labelledby="studentRequestModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="studentRequestModalLabel">
+              Student Request
+            </h5>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form id="studentRequestForm">
+              <div class="form-group">
+                <label for="studentUsername">Student Username</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="studentUsername"
+                  name="studentUsername"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="room">Room</label>
+                <select class="form-control" id="room" required>
+                  {% for room in room_data %}
+                  <option value="{{ room['name'] }}">{{ room['name'] }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <button type="submit" class="btn btn-success">Submit</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feature Request Modal -->
+    <div
+      class="modal fade"
+      id="featureRequestModal"
+      tabindex="-1"
+      aria-labelledby="featureRequestModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="featureRequestModalLabel">
+              Feature Request
+            </h5>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form id="featureRequestForm">
+              <div class="form-group">
+                <label for="feature">Feature</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="feature"
+                  name="feature"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="room">Room</label>
+                <select class="form-control" id="room" required>
+                  {% for room in room_data %}
+                  <option value="{{ room['name'] }}">{{ room['name'] }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <button type="submit" class="btn btn-success">Submit</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div
+      class="modal fade"
+      id="successModal"
+      tabindex="-1"
+      aria-labelledby="successModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-body text-center text-success">
+            <i class="fas fa-check-circle fa-3x"></i>
+            <h4>Your request was sent successfully!</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Failure Modal -->
+    <div
+      class="modal fade"
+      id="failureModal"
+      tabindex="-1"
+      aria-labelledby="failureModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-body text-center text-danger">
+            <i class="fas fa-times-circle fa-3x"></i>
+            <h4>Your request failed. Please try again.</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"
+      crossorigin="anonymous"
+    ></script>
+
+    <script src="{{ url_for('static', filename='javascript/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='javascript/sidebar.js') }}"></script>
+  </body>
 </html>
