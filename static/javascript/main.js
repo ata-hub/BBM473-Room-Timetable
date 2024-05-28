@@ -58,4 +58,15 @@ $(document).ready(function() {
         $('#reserveRoomModal').modal('hide');
         $('#successModal').modal('show');
       });
+      // Add the script to show/hide the End Date field
+    const repeatDropdown = $('#eventRepeat');
+    const endDateGroup = $('#endDateGroup');
+
+    repeatDropdown.on('change', function() {
+        if (repeatDropdown.val() === 'today') {
+            endDateGroup.hide();
+        } else {
+            endDateGroup.show();
+        }
+    });
 });

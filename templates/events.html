@@ -1,0 +1,247 @@
+{% extends "base.html" %} {% block head %}
+<title>Events Page</title>
+<link
+  rel="stylesheet"
+  href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+/>
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="{{ url_for('static', filename='css/events.css') }}"
+/>
+{% endblock %} {% block body %}
+<h1 class="text-center">Events</h1>
+<div class="card-container">
+  {% for booking in reservationList %}
+  <div
+    class="card"
+    onclick="showDetails(this.getAttribute('data-title'), this.getAttribute('data-description'))"
+    data-toggle="modal"
+    data-target="#bookingModal"
+    data-title="{{ booking.title }}"
+    data-description="{{ booking.description }}"
+  >
+    <h3>{{ booking.title }}</h3>
+    <p>Room: {{ booking.room_id }}</p>
+    <p>Start: {{ booking.start_time }}</p>
+    <p>End: {{ booking.end_time }}</p>
+    <!-- Container for delete and edit buttons -->
+    <div class="button-container">
+      <!-- Delete button -->
+      <button
+        class="btn btn-danger btn-square delete-button"
+        onclick="deleteBooking('{{ booking.event_id }}')"
+      >
+        <i class="fas fa-trash-alt"></i>
+      </button>
+
+      <!-- Edit button -->
+      <button
+        class="btn btn-primary btn-square edit-button"
+        onclick="editBooking(event, {
+          'title': '{{ booking.title }}',
+          'description': '{{ booking.description }}',
+          'room_id': '{{ booking.room_id }}',
+          'start_time': '{{ booking.start_time }}',
+          'end_time': '{{ booking.end_time }}'
+        }); event.stopPropagation();"
+      >
+        <i class="fas fa-pencil-alt"></i>
+      </button>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Bootstrap Modal -->
+<div
+  class="modal fade"
+  id="bookingModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="bookingModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="bookingModalLabel"></h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <h2 id="modalTitle"></h2>
+        <p id="modalDescription"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Edit Modal -->
+<div
+  class="modal fade"
+  id="editBookingModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="editBookingModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editBookingModalLabel">Edit Booking</h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="editBookingForm">
+          <div class="form-group">
+            <label for="editTitle">Title</label>
+            <div class="custom-input-group">
+              <input type="text" class="form-control" id="editTitle" disabled />
+              <div class="edit-input-container" style="display: none">
+                <input
+                  type="text"
+                  class="form-control edit-input"
+                  id="editTitleInput"
+                />
+              </div>
+              <button
+                class="btn btn-primary edit-button"
+                type="button"
+                onclick="showEditInput('editTitle')"
+              >
+                <i class="fas fa-pencil-alt"></i>
+              </button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="editDescription">Description</label>
+            <div class="custom-input-group">
+              <input
+                type="text"
+                class="form-control"
+                id="editDescription"
+                disabled
+              />
+              <div class="edit-input-container" style="display: none">
+                <input
+                  type="text"
+                  class="form-control edit-input"
+                  id="editDescriptionInput"
+                />
+              </div>
+              <button
+                class="btn btn-primary edit-button"
+                type="button"
+                onclick="showEditInput('editDescription')"
+              >
+                <i class="fas fa-pencil-alt"></i>
+              </button>
+            </div>
+          </div>
+          <!-- Add similar structure for other fields -->
+          <div class="form-group">
+            <label for="editRoom">Room</label>
+            <div class="custom-input-group">
+              <input type="text" class="form-control" id="editRoom" disabled />
+              <div class="edit-input-container" style="display: none">
+                <input
+                  type="text"
+                  class="form-control edit-input"
+                  id="editRoomInput"
+                />
+              </div>
+              <button
+                class="btn btn-primary edit-button"
+                type="button"
+                onclick="showEditInput('editRoom')"
+              >
+                <i class="fas fa-pencil-alt"></i>
+              </button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="editStartTime">Start Time</label>
+            <div class="custom-input-group">
+              <input
+                type="datetime-local"
+                class="form-control"
+                id="editStartTime"
+                disabled
+              />
+              <div class="edit-input-container" style="display: none">
+                <input
+                  type="datetime-local"
+                  class="form-control edit-input"
+                  id="editStartTimeInput"
+                />
+              </div>
+              <button
+                class="btn btn-primary edit-button"
+                type="button"
+                onclick="showEditInput('editStartTime')"
+              >
+                <i class="fas fa-pencil-alt"></i>
+              </button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="editEndTime">End Time</label>
+            <div class="custom-input-group">
+              <input
+                type="datetime-local"
+                class="form-control"
+                id="editEndTime"
+                disabled
+              />
+              <div class="edit-input-container" style="display: none">
+                <input
+                  type="datetime-local"
+                  class="form-control edit-input"
+                  id="editEndTimeInput"
+                />
+              </div>
+              <button
+                class="btn btn-primary edit-button"
+                type="button"
+                onclick="showEditInput('editEndTime')"
+              >
+                <i class="fas fa-pencil-alt"></i>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="saveChanges()">
+          Save Changes
+        </button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="{{ url_for('static', filename='javascript/events.js') }}"></script>
+{% endblock %}

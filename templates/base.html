@@ -31,6 +31,9 @@
             >
           </li>
           <li>
+            <a href="/events">My Bookings</a>
+          </li>
+          <li>
             <a href="#">Room Permissions</a>
           </li>
           {% elif user_role == 'instructor' %}
@@ -38,6 +41,9 @@
             <a href="#" data-toggle="modal" data-target="#reserveRoomModal"
               >Reserve Room</a
             >
+          </li>
+          <li>
+            <a href="/events">My Bookings</a>
           </li>
           <li>
             <a href="#" data-toggle="modal" data-target="#featureRequestModal"
@@ -54,6 +60,9 @@
             <a href="#" data-toggle="modal" data-target="#reserveRoomModal"
               >Reserve Room</a
             >
+          </li>
+          <li>
+            <a href="/events">My Bookings</a>
           </li>
           <li>
             <a href="#">Pending Feature Requests</a>
@@ -201,6 +210,11 @@
                   <option value="monthly">Monthly</option>
                   <option value="yearly">Yearly</option>
                 </select>
+              </div>
+              <!-- End Date Field (Initially Hidden) -->
+              <div class="form-group" id="endDateGroup" style="display: none">
+                <label for="endDate">End Date</label>
+                <input type="date" class="form-control" id="endDate" />
               </div>
               <button type="submit" class="btn btn-primary">Reserve</button>
             </form>
