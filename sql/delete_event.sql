@@ -12,10 +12,8 @@ begin
 	if username = curr_user then
 		delete from bookings b where b.event_id = event_to_delete;
 
-		delete from timeslots t where exists (select 1 from bookings b where b.timeslot_id = t.timeslot_id
-												and b.event_id = event_to_delete
-												group by b.timeslot_id, b.event_id
-												having count(*) = 1);
+		delete from timeslots t where not exists (select 1 from bookings b 
+												where b.timeslot_id = t.timeslot_id);
 		
 		delete from events where event_id = event_to_delete;
 	else 

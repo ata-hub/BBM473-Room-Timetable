@@ -31,9 +31,10 @@ def userpage():
 
     return render_template('userpage.html', room_data=room_data, time_slots=time_slots)
 
-@app.route('/login', methods=['POST']) 
+# *** USER SERVICE ***
+@app.route('/login', methods=['POST'])  # WORKS
 def login(): 
-    data = request.form  #TODO this can change later
+    data = request.form 
     login_data = user_service.login(data)
     session['username'] = data['username']
     session['role'] = login_data['role']
@@ -42,108 +43,133 @@ def login():
 
     return login_data
 
-@app.route('/give-permission', methods=['POST'])
+@app.route('/give-permission', methods=['POST']) #WORKS
 def give_permission(): 
     if 'logged_in' in session:
         data = request.form  
         return user_service.give_permission(data)
 
-@app.route('/list-permission-requests', methods=['GET'])
+@app.route('/list-permission-requests', methods=['GET'])  #WORKS
 def list_permission_requests(): 
     if 'logged_in' in session:
         return user_service.list_awating_permission_requests()
 
-@app.route('/request-permission', methods=['POST'])
+@app.route('/request-permission', methods=['POST'])  # WORKS
 def request_permission(): 
     if 'logged_in' in session:
         data = request.form  
         return user_service.request_permission(data)
 
-@app.route('/list-feature-requests', methods=['GET'])
+@app.route('/list-feature-requests', methods=['GET'])   # WORKS
 def list_feature_requests(): 
     if 'logged_in' in session:
         return user_service.list_awating_feature_requests()
+    
+@app.route('/user-rooms', methods=['GET'])  # WORKS
+def get_user_rooms():
+     if 'logged_in' in session:
+        return user_service.get_user_rooms()
 
-@app.route('/logout', methods=['POST'])
+@app.route('/logout', methods=['POST'])  # WORKS
 def logout(): 
     session.pop('logged_in', None)
     session.pop('username', None)
-    return redirect(url_for('login'))   #TODO ???
+    return redirect(url_for('login'))   
 
-@app.route('/features', methods=['GET'])
+
+# *** ROOM SERVICE ***
+@app.route('/features', methods=['GET'])  #WORKS
 def features(): 
     if 'logged_in' in session:
         return room_service.list_features()
 
-@app.route('/request-feature', methods=['POST'])
+@app.route('/room-details', methods=['GET'])  # WORKS
+def room_details(): 
+    if 'logged_in' in session:
+        return room_service.list_room_details()
+
+@app.route('/request-feature', methods=['POST'])  # WORKS
 def request_feature():
     if 'logged_in' in session:
         data = request.form
         return room_service.request_feature(data)
 
-@app.route('/add-feature', methods=['POST'])
+@app.route('/add-feature', methods=['POST'])  # WORKS
 def add_new_feature():
     if 'logged_in' in session:
         data = request.form
-        return room_service.add_new_feature(data["name"])
+        return room_service.add_new_feature(data)
 
-@app.route('/make-reservation', methods=['POST'])
+@app.route('/make-reservation', methods=['POST']) # WORKS
 def make_reservation():
     if 'logged_in' in session:
         data = request.form
         return room_service.make_reservation(data)
 
-@app.route('/recurring-reservation', methods=['POST'])
+@app.route('/recurring-reservation', methods=['POST'])  # WORKS
 def make_recurring_reservation():
     if 'logged_in' in session:
         data = request.form
         return room_service.make_recurring_reservation(data)
 
-@app.route('/reservations', methods=['GET'])
+@app.route('/reservations', methods=['GET'])  # WORKS
 def list_reservation():
     if 'logged_in' in session:
         return room_service.list_user_reservations()
 
-@app.route('/cancel', methods=['DELETE'])
+@app.route('/cancel', methods=['DELETE'])  # WORKS BUT WHY SO SLOW AAAAA
 def cancel_reservation():
     if 'logged_in' in session:
         data = request.form
         return room_service.cancel_reservation(data["event_id"])
-
-@app.route('/suggestions', methods=['GET'])
-def get_suggestions():
+    
+@app.route('/change', methods=['POST'])  # WORKS
+def change_reservation():
     if 'logged_in' in session:
         data = request.form
-        return room_service.make_suggestion(data)
-
-@app.route('/recurring-suggestions', methods=['GET'])
-def get_recurring_suggestions():
+        return room_service.change_reservation(data)
+    
+@app.route('/change-recurring', methods=['POST'])  # WORKS
+def change_recurring_reservation():
     if 'logged_in' in session:
         data = request.form
-        return room_service.make_recurring_suggestion(data)
+        return room_service.change_recurring_reservation(data)
+    
+@app.route('/change-event', methods=['POST'])  # WORKS
+def change_event_details():
+    if 'logged_in' in session:
+        data = request.form
+        return room_service.change_event_details(data)
 
-@app.route('/timetable', methods=['GET'])
+@app.route('/timetable', methods=['GET']) # WORKS
 def get_timetable():
-    data = request.form
-    return room_service.get_timetable(data)
+    start = request.form.get('start', None)
+    end = request.form.get('end', None)
+    department = request.form.get('department', session.get('department'))
+    return room_service.get_timetable(start, end, department)
 
-@app.route('/my-reservations', methods=['GET'])
+@app.route('/my-reservations', methods=['GET'])  # WORKS
 def get_my_reservations():
     if 'logged_in' in session:
-        data = request.form
-        return room_service.get_my_reservations(data)
+        start = request.form.get('start', None)
+        end = request.form.get('end', None)
+        return room_service.get_my_reservations(start, end)
     
-@app.route('/other-reservations', methods=['GET'])
+@app.route('/other-reservations', methods=['GET'])   # WORKS
 def get_other_reservations():
     if 'logged_in' in session:
-        data = request.form
-        return room_service.get_other_reservarions(data)
+        start = request.form.get('start', None)
+        end = request.form.get('end', None)
+        return room_service.get_other_reservarions(start, end)
 
-@app.route('/export-timetable', methods=['GET'])
+@app.route('/export', methods=['GET'])
 def export_timetable():
     if 'logged_in' in session:
         data = request.form
-        return room_service.export_timetable(data)
+        start = request.form.get('start', None)
+        end = request.form.get('end', None)
+        format = request.form.get('format', 'excel')
+        return room_service.export_timetable(start, end, format)
 
 if __name__ == "__main__":
     app.run(port=6000, debug=True)

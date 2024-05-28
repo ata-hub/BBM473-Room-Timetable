@@ -2,7 +2,7 @@ begin transaction;
 
 do $$
 declare 
-    description integer := %(description)s;
+    description text := %(description)s;
     room_id integer := %(room_id)s;
     feature_var integer;
 

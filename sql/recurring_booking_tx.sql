@@ -24,14 +24,14 @@ begin
 	while start_day_copy <= end_day loop
 		select exists (select 1 from timeslots t, bookings b  where t.date = start_day_copy and b.room_id = room
 															and b.timeslot_id = t.timeslot_id --???
-															and t.start_time < to_start
-															and t.end_time > to_start) 
+															and t.start_time <= to_start
+															and t.end_time >= to_start) 
 					  into start_not_available;
 					 
 		select exists (select 1 from timeslots t, bookings b where t.date = start_day_copy and b.room_id = room
 																and b.timeslot_id = t.timeslot_id --???
-											                    and to_start < t.start_time
-											                    and to_end > t.start_time)
+											                    and to_start <= t.start_time
+											                    and to_end >= t.start_time)
 					  into end_not_available;
 					 
 		if start_not_available = true or end_not_available then 

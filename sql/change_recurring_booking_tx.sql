@@ -2,7 +2,6 @@ begin transaction;
 
 do $$
 declare 
-	event_var integer;
 	timeslot_var integer;
 	start_not_available boolean;
 	end_not_available boolean;
@@ -13,7 +12,7 @@ declare
 	new_room integer :=  %(new_room)s;
 	curr_user text :=  %(curr_user)s;
 	old_interval integer := %(old_interval)s;
-    event_id integer: %(event_id)s;
+	old_event_id integer := %(event_id)s;
 	start_day_copy date := new_start_day;
 	room_dept_id integer;
 	user_role text;
@@ -21,16 +20,20 @@ declare
 		
 begin
 	while start_day_copy <= new_end_day loop
-		select exists (select 1 from timeslots t, bookings b  where t.date = start_day_copy and b.room_id = new_room
+		select exists (select 1 from timeslots t, bookings b, events e where t.date = start_day_copy and b.room_id = new_room
 															and b.timeslot_id = t.timeslot_id --???
-															and t.start_time < new_to_start
-															and t.end_time > new_to_start) 
+															and b.event_id = e.event_id
+															and t.start_time <= new_to_start
+															and t.end_time >= new_to_start
+															and e.event_id <> old_event_id) 
 					  into start_not_available;
 					 
-		select exists (select 1 from timeslots t, bookings b where t.date = start_day_copy and b.room_id = new_room
+		select exists (select 1 from timeslots t, bookings b, events e where t.date = start_day_copy and b.room_id = new_room
 																and b.timeslot_id = t.timeslot_id --???
-											                    and new_to_start < t.start_time
-											                    and new_to_end > t.start_time)
+																and b.event_id = e.event_id
+											                    and new_to_start <= t.start_time
+											                    and new_to_end >= t.start_time
+																and e.event_id <> old_event_id)
 					  into end_not_available;
 					 
 		if start_not_available = true or end_not_available then 
@@ -59,12 +62,10 @@ begin
 		end if;
 			
 		if can_book = true then
-            delete from bookings b where b.event_id = event_id;
+            delete from bookings b where b.event_id = old_event_id;
 
-		    delete from timeslots t where exists (select 1 from bookings b where b.timeslot_id = t.timeslot_id
-												and b.event_id = event_id
-												group by b.timeslot_id, b.event_id
-												having count(*) = 1);
+		    delete from timeslots t where not exists (select 1 from bookings b 
+												where b.timeslot_id = t.timeslot_id);
 		
 			while new_start_day <= new_end_day loop
 				-- timeslots
@@ -79,13 +80,13 @@ begin
 					returning timeslot_id into timeslot_var;
 				
 					insert into bookings(room_id, timeslot_id, event_id)
-					values (new_room, timeslot_var, event_id);
+					values (new_room, timeslot_var, old_event_id);
 				else
 					insert into bookings(room_id, timeslot_id, event_id)
-					values (new_room, timeslot_var, event_id);
+					values (new_room, timeslot_var, old_event_id);
 				end if;
 			
-				start_day := start_day + new_interval;
+				new_start_day := new_start_day + old_interval;
 			end loop;
 		
 		end if;
