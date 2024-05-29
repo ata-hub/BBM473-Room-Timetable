@@ -36,10 +36,30 @@ input[type="text"], input[type="password"] {
     font-size: 16px;
 }
 
-/* Submit button styles */
+/* Guest login link styles */
+.guest-login {
+    text-align: center;
+}
+
+.guest-login-link {
+    font-size: 0.9em;
+    color: #007bff;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.guest-login-link:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+/* Adjust form control styles */
+.form-control {
+    border-radius: 6px;
+}
+
+/* Adjust button styles */
 button[type="submit"] {
-    width: 100%;
-    padding: 12px;
     background-color: #007bff;
     color: #fff;
     border: none;
