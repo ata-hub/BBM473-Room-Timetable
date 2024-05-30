@@ -1,4 +1,5 @@
 $(document).ready(function() {
+
     $('#studentRequestForm').submit(function(event) {
         event.preventDefault();
         $.ajax({
@@ -57,6 +58,26 @@ $(document).ready(function() {
         // For example, show success modal after form submission
         $('#reserveRoomModal').modal('hide');
         $('#successModal').modal('show');
+      });
+      $.getJSON('/list_features', function (data) {
+        const featureDropdown = $('#existingFeatures');
+        data.features.forEach(function (feature) {
+          featureDropdown.append(
+            `<option value="${feature.feature_id}">${feature.name}</option>`
+          );
+        });
+      });
+
+      // Show/hide the feature input field based on the selected option
+      $('#existingFeatures').on('change', function () {
+        const selectedValue = $(this).val();
+        if (selectedValue === 'other') {
+          $('#newFeatureGroup').show();
+          $('#feature').prop('required', true);
+        } else {
+          $('#newFeatureGroup').hide();
+          $('#feature').prop('required', false);
+        }
       });
       // Add the script to show/hide the End Date field
     const repeatDropdown = $('#eventRepeat');
