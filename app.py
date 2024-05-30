@@ -1,10 +1,15 @@
-import datetime
-from flask import Flask, request, jsonify, render_template
-from flask_sqlalchemy import SQLAlchemy
-
+from datetime import datetime, timedelta, date
+from flask import Flask, request, jsonify, render_template, session, redirect, url_for
+import os
 from service import MyException, RoomService, UserService
 
 app = Flask(__name__)
+app.secret_key = os.urandom(24)
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=14)
+
+user_service = UserService()
+room_service = RoomService()
 
 users = {
     'student_user': {'password': 'studentpass', 'role': 'student'},
@@ -34,9 +39,37 @@ def get_dummy_reservations():
     ]
 
 @app.route("/")
-
 def login():
     return render_template("login.html")
+
+@app.route('/login', methods=['POST']) 
+def login_post(): 
+    data = {
+        'username' : request.form.get('username'),
+        'password' : request.form.get('password')
+    }
+    
+    login_data = user_service.login(data)
+
+    if login_data == "False":
+        return jsonify(success=False, message="Wrong credentials.")
+    else:
+        session['username'] = data['username']
+        session['role'] = login_data['role']
+        session['department'] = login_data['department_id']
+        session['logged_in'] = True
+
+    if session['role'] == 'student':
+        return jsonify(success=True, redirect_url=url_for('studentPage'))
+    elif session['role'] == 'instructor':
+        return jsonify(success=True, redirect_url=url_for('instructorPage'))
+    else:
+        return jsonify(success=True, redirect_url=url_for('adminPage'))
+    
+@app.route('/guest-login', methods=['GET'])
+def guest_login():
+    departments = user_service.get_all_departments()
+    return jsonify(success=True, departments=departments)
 
 # Dummy room data (replace with actual data from the database)
 room_data = [
@@ -50,34 +83,40 @@ def studentPage():
     # Define time slots
     time_slots = [f"{hour}:00" for hour in range(8, 20)]
     #TODO roomları backendden al (permissionlardan al)
-    room_data = UserService().get_user_rooms()
+    room_data = user_service.get_user_rooms()
     return render_template('student.html', 
                            room_data=room_data, 
                            time_slots=time_slots, 
-                           user_role="student")
+                           user_role="student",
+                           username=session.get('username'),
+                           department=session.get('department'))
 
 @app.route('/instructor')
 def instructorPage():
     # Define time slots
     time_slots = [f"{hour}:00" for hour in range(8, 20)]
     #TODO roomları backendden al (bütün departman odaları)
-    room_data = UserService().get_user_rooms()
+    room_data = user_service.get_user_rooms()
     print("rooms for instructor:",room_data)
     return render_template('instructor.html', 
                            room_data=room_data, 
                            time_slots=time_slots, 
-                           user_role="instructor")
+                           user_role="instructor",
+                           username=session.get('username'),
+                           department=session.get('department'))
 
 @app.route('/admin')
 def adminPage():
     # Define time slots
     time_slots = [f"{hour}:00" for hour in range(8, 20)]
     #TODO roomları backendden al sistmdeki tüm odalar
-    room_data = UserService().get_user_rooms()
+    room_data = user_service.get_user_rooms()
     return render_template('admin.html',
                             room_data=room_data,
                             time_slots=time_slots,
-                            user_role="admin")
+                            user_role="admin",
+                            username=session.get('username'),
+                            department=session.get('department'))
 
 #instructor making student request
 @app.route('/student_request', methods=['POST'])
@@ -91,7 +130,7 @@ def student_request():
     }
     try:
         # Call the request_permission method with the requestDto
-        result = UserService().request_permission(requestDto)
+        result = user_service.request_permission(requestDto)
         if(result == 'True'):
             return jsonify(success=True)
     except MyException as e:
@@ -103,7 +142,7 @@ def student_request():
     
 @app.route('/list_features', methods=['GET'])
 def list_features():
-    features = RoomService().list_features()
+    features = room_service.list_features()
     return jsonify(features=features)
 
 
@@ -131,7 +170,7 @@ def feature_request():
     #eğer dropdownda other dışında bir şey seçilirse feature_id o seçilen featureın idsi olacak
     try:
         # Call the request_permission method with the requestDto
-        result = RoomService().request_feature(requestDto)
+        result = room_service.request_feature(requestDto)
         if(result == 'True'):
             return jsonify(success=True)
     except MyException as e:
@@ -160,4 +199,4 @@ def eventsPage():
     return render_template('events.html', reservationList=reservationList) # TODO user_role=user_role bunu ekle
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=7000)
