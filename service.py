@@ -143,17 +143,17 @@ class UserService():
         rooms = []
 
         if role == 'student': 
-            cursor.execute("""SELECT r.name FROM user_permissions up, rooms r 
+            cursor.execute("""SELECT r.name, r.room_id FROM user_permissions up, rooms r 
                            WHERE up.room_id = r.room_id
                            AND username = %s""", (user, ))
             rooms = cursor.fetchall()
 
         elif role == 'instructor':
-            cursor.execute("SELECT name FROM rooms WHERE department_id = %s", (user_department, ))
+            cursor.execute("SELECT name, room_id FROM rooms WHERE department_id = %s", (user_department, ))
             rooms = cursor.fetchall()
 
         else:
-            cursor.execute("""SELECT d.name AS dname, r.name AS rname FROM rooms r, departments d
+            cursor.execute("""SELECT d.name AS dname, r.name AS rname, r.room_id FROM rooms r, departments d
                            WHERE r.department_id = d.department_id
                            """)
             
@@ -161,6 +161,14 @@ class UserService():
             rooms = [(str(item["dname"]) + " - " + str(item["rname"])) for item in room_data]
 
         return rooms
+
+    def get_all_departments(self):
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+        cursor.execute("SELECT name, department_id FROM departments")
+        departments = cursor.fetchall()
+        return departments
 
     def logout(self):
         session.clear()
@@ -723,6 +731,7 @@ class RoomService():
     #     return booking
     
     # frontend -> backend: department, day ama guest değilse departmentı sessiondan çek 
+    # eğer tek gün ise start ve endi aynı gir
     def get_timetable(self, start, end, department):    # anasayfada göstermek için -- start end date olabilir
         if start is None or end is None:
             today = date.today()
@@ -744,22 +753,19 @@ class RoomService():
                        AND r.department_id = %s""", (start, end, department))  
         
         timetable = cursor.fetchall()
-        return timetable
+
+        if timetable:
+            return timetable
+        else:
+            return "False"
     
-    def get_my_reservations(self, start, end): 
+    def get_my_reservations(self): 
         user = session.get('username')
         conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
-
-        if start is None or end is None:
-            today = date.today()
-            start = today - timedelta(days=today.weekday())
-            end = start + timedelta(days=6)
-            start = start.strftime("%d-%m-%Y") 
-            end = end.strftime("%d-%m-%Y")
         
         cursor.execute("""SELECT e.title, e.description, e.organizer, r.name, r.capacity, r.type,
-                       f.name, rf.is_working, to_char(t.start_time, 'HH24:MI') AS start_time, 
+                       f.name, rf.is_working, t.date, to_char(t.start_time, 'HH24:MI') AS start_time, 
                        to_char(t.end_time, 'HH24:MI') AS end_time
                        FROM events e
                        INNER JOIN bookings b ON b.event_id = e.event_id
@@ -767,24 +773,20 @@ class RoomService():
                        INNER JOIN rooms r ON r.room_id = b.room_id
                        INNER JOIN room_features rf ON r.room_id = rf.room_id
                        INNER JOIN features f ON f.feature_id = rf.feature_id
-                       WHERE e.organizer = %s
-                       AND t.date BETWEEN to_date(%s, 'dd-mm-yyyy') AND to_date(%s, 'dd-mm-yyyy')""", (user, start, end))
+                       WHERE e.organizer = %s""", (user))
         
         my_reservations = cursor.fetchall()
         return my_reservations
         
-    def get_other_reservarions(self, start, end): 
+    def get_other_reservarions(self, day): 
         user = session.get('username')
         department  = session.get('department')
         conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor) 
 
-        if start is None or end is None:
+        if day is None:
             today = date.today()
-            start = today - timedelta(days=today.weekday())
-            end = start + timedelta(days=6)
-            start = start.strftime("%d-%m-%Y") 
-            end = end.strftime("%d-%m-%Y")
+            day = today.strftime("%d-%m-%Y") 
 
         cursor.execute("""SELECT e.title, e.description, e.organizer, r.name, r.capacity, r.type,
                        f.name, rf.is_working, to_char(t.start_time, 'HH24:MI') AS start_time, 
@@ -796,7 +798,7 @@ class RoomService():
                        INNER JOIN room_features rf ON r.room_id = rf.room_id
                        INNER JOIN features f ON f.feature_id = rf.feature_id
                        WHERE e.organizer = %s AND r.department_id = %s
-                       AND t.date BETWEEN to_date(%s, 'dd-mm-yyyy') AND to_date(%s, 'dd-mm-yyyy')""", (user, department, start, end))
+                       AND t.date = to_date(%s, 'dd-mm-yyyy')""", (user, department, day))
         
         other_reservations = cursor.fetchall()
         return other_reservations

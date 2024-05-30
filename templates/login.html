@@ -14,9 +14,9 @@
     />
   </head>
   <body>
-    <div class="login-container">
+    <div class="login-container" id="loginModal">
       <h2>Login</h2>
-      <form action="#" method="post">
+      <form action="/login" method="post" id="loginForm">
         <div class="form-group">
           <input
             type="text"
@@ -72,20 +72,10 @@
             </button>
           </div>
           <div class="modal-body">
-            <form action="/guest-login" method="post">
+            <form action="/guest-login" method="post" id="guestLoginForm">
               <div class="form-group">
                 <label for="department">Department:</label>
-                <select
-                  id="department"
-                  name="department"
-                  required
-                  class="form-control"
-                >
-                  <option value="cs">Computer Science</option>
-                  <option value="math">Mathematics</option>
-                  <option value="phy">Physics</option>
-                  <option value="chem">Chemistry</option>
-                  <!-- Add more departments as needed -->
+                <select id="department" name="department" required class="form-control" >
                 </select>
               </div>
               <button type="submit" class="btn btn-primary">
@@ -97,8 +87,9 @@
       </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="{{ url_for('static', filename='javascript/login.js') }}"></script>
   </body>
 </html>
