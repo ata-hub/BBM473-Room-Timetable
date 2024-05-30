@@ -97,6 +97,7 @@ def instructorPage():
     time_slots = [f"{hour}:00" for hour in range(8, 20)]
     #TODO roomları backendden al (bütün departman odaları)
     room_data = user_service.get_user_rooms()
+    # my_reservations = room_service.get_my_reservations_for_day(None)
     print("rooms for instructor:",room_data)
     return render_template('instructor.html', 
                            room_data=room_data, 
@@ -121,13 +122,14 @@ def adminPage():
 #instructor making student request
 @app.route('/student_request', methods=['POST'])
 def student_request():
-    student_username = request.form['studentUsername']
-    student_room = request.form['studentRoom']
+    student_username = request.form.get('studentUsername')
+    student_room = request.form.get('studentRoom')
     # TODO add student request to db (permissions table and student_request_permission)
     requestDto = {
         'username': student_username,
         'room': student_room
     }
+
     try:
         # Call the request_permission method with the requestDto
         result = user_service.request_permission(requestDto)
@@ -162,7 +164,7 @@ def feature_request():
     requestDto = {
         'feature_id': feature_id,
         'new_feature': new_feature if feature_id is None else None,
-        'room': feature_room,
+        'room_id': feature_room,
         'description': description
     }
     print("dto is:",requestDto)
@@ -171,6 +173,7 @@ def feature_request():
     try:
         # Call the request_permission method with the requestDto
         result = room_service.request_feature(requestDto)
+        
         if(result == 'True'):
             return jsonify(success=True)
     except MyException as e:
@@ -199,4 +202,4 @@ def eventsPage():
     return render_template('events.html', reservationList=reservationList) # TODO user_role=user_role bunu ekle
 
 if __name__ == "__main__":
-    app.run(debug=True, port=7000)
+    app.run(debug=True, port=7001)

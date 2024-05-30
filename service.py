@@ -107,7 +107,7 @@ class UserService():
         conn.commit()
 
         if cursor.rowcount != 1:
-            raise MyException("Can't request permission for a room in another department.")
+            return "False"
 
         conn.close()
         return 'True'
@@ -274,7 +274,7 @@ class RoomService():
         tx_sql = read_sql_file('./sql/request_old_feature.sql')
         conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
-
+        
         if feature_id:   #bu çalışacak mı null olursa?
             cursor.execute(tx_sql, {   
                 'feature_id': feature_id,
@@ -759,10 +759,37 @@ class RoomService():
         else:
             return "False"
     
-    def get_my_reservations(self): 
+    def get_all_my_reservations(self):
         user = session.get('username')
         conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+        cursor.execute("""SELECT e.title, e.description, e.organizer, r.name, r.capacity, r.type,
+                       f.name, rf.is_working, t.date, to_char(t.start_time, 'HH24:MI') AS start_time, 
+                       to_char(t.end_time, 'HH24:MI') AS end_time
+                       FROM events e
+                       INNER JOIN bookings b ON b.event_id = e.event_id
+                       INNER JOIN timeslots t ON b.timeslot_id = t.timeslot_id
+                       INNER JOIN rooms r ON r.room_id = b.room_id
+                       INNER JOIN room_features rf ON r.room_id = rf.room_id
+                       INNER JOIN features f ON f.feature_id = rf.feature_id
+                       WHERE e.organizer = %s""", (user, ))
+        
+        my_reservations = cursor.fetchall()
+
+        if my_reservations:
+            return my_reservations
+        else:
+            return "False"
+
+    def get_my_reservations_for_day(self, day): 
+        user = session.get('username')
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+        if day is None:
+            today = date.today()
+            day = today.strftime("%d-%m-%Y")
         
         cursor.execute("""SELECT e.title, e.description, e.organizer, r.name, r.capacity, r.type,
                        f.name, rf.is_working, t.date, to_char(t.start_time, 'HH24:MI') AS start_time, 
@@ -773,12 +800,16 @@ class RoomService():
                        INNER JOIN rooms r ON r.room_id = b.room_id
                        INNER JOIN room_features rf ON r.room_id = rf.room_id
                        INNER JOIN features f ON f.feature_id = rf.feature_id
-                       WHERE e.organizer = %s""", (user))
+                       WHERE e.organizer = %s AND t.date = to_date(%s, 'dd-mm-yyyy')""", (user, day))
         
         my_reservations = cursor.fetchall()
-        return my_reservations
+
+        if my_reservations:
+            return my_reservations
+        else:
+            return "False"
         
-    def get_other_reservarions(self, day): 
+    def get_other_reservarions_for_day(self, day): 
         user = session.get('username')
         department  = session.get('department')
         conn = get_db_connection()
@@ -797,11 +828,15 @@ class RoomService():
                        INNER JOIN rooms r ON r.room_id = b.room_id
                        INNER JOIN room_features rf ON r.room_id = rf.room_id
                        INNER JOIN features f ON f.feature_id = rf.feature_id
-                       WHERE e.organizer = %s AND r.department_id = %s
+                       WHERE e.organizer <> %s AND r.department_id = %s
                        AND t.date = to_date(%s, 'dd-mm-yyyy')""", (user, department, day))
         
         other_reservations = cursor.fetchall()
-        return other_reservations
+
+        if other_reservations:
+            return other_reservations
+        else:
+            return "False"
 
     def export_timetable(self, start, end, format): 
         try:

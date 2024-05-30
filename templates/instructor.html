@@ -24,7 +24,7 @@
   <table>
     <thead>
       <tr>
-        <th>Time</th>
+        <th>Time/ Room</th>
         {% for time_slot in time_slots %}
         <th>{{ time_slot }}</th>
         {% endfor %}
@@ -33,7 +33,7 @@
     <tbody>
       {% for room in room_data %}
       <tr>
-        <td>{{ room }}</td>
+        <td>{{ room.name }}</td>
         {% for time_slot in time_slots %}
         <td><!-- Populate cell with room availability or other data --></td>
         {% endfor %}
