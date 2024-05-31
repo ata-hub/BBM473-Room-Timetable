@@ -43,6 +43,7 @@
         class="btn btn-primary btn-square edit-button"
         onclick="editBooking(event, {
           'title': '{{ booking.title }}',
+          'event_id': '{{ booking.event_id }}',
           'description': '{{ booking.description }}',
           'room_name': '{{ booking.room_name }}',
           'date': '{{ booking.date }}',
@@ -117,6 +118,7 @@
       </div>
       <div class="modal-body">
         <form id="editBookingForm">
+          <input type="hidden" id="editEventId" />
           <div class="form-group">
             <label for="editTitle">Title</label>
             <div class="custom-input-group">

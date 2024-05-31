@@ -314,6 +314,7 @@ def change_event_details_controller():
     event_dto = request.json
     result = RoomService().change_event_details(event_dto)
     return jsonify({'result': result})
+
 #my booking update function calls these two functions
 @app.route('/change_reservation', methods=['POST'])
 def change_reservation_controller():

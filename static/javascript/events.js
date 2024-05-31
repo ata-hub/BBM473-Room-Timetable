@@ -20,6 +20,7 @@ function editBooking(event, booking) {
     document.getElementById('editDate').value = booking.date;
     document.getElementById('editStartTime').value = booking.start_time;
     document.getElementById('editEndTime').value = booking.end_time;
+    document.getElementById('editEventId').value = booking.event_id;
 
     // Open the edit modal
     $('#editBookingModal').modal('show');
@@ -68,70 +69,79 @@ function saveChanges() {
     let editedDescription = document.getElementById('editDescriptionInput').value;
     let editedRoom = document.getElementById('editRoomInput').value;
     let editedDate = document.getElementById('editDateInput').value;
-  
+
     // Get the values from the custom time pickers
     let startHour = document.getElementById('editStartTimeHour').value;
     let startMinute = document.getElementById('editStartTimeMinute').value;
-    let editedStartTime = `${startHour}:${startMinute}`;
-  
+    let editedStartTime = (startHour && startMinute) ? `${startHour}:${startMinute}` : null;
+    //burada editedStartTime ':' şeklinde gelebilir ve iften kaçıyor
     let endHour = document.getElementById('editEndTimeHour').value;
     let endMinute = document.getElementById('editEndTimeMinute').value;
-    let editedEndTime = `${endHour}:${endMinute}`;
-  
+    let editedEndTime = (endHour && endMinute) ? `${endHour}:${endMinute}`: null;
+
     // Check if title or description has changed
     let originalTitle = document.getElementById('editTitle').value;
     let originalDescription = document.getElementById('editDescription').value;
-    let eventId = document.getElementById('eventId').value; // Assuming you have an event ID field
-  
-    if (editedTitle !== originalTitle || editedDescription !== originalDescription) {
-      $.ajax({
-        url: '/change_event_details',
-        type: 'POST',
-        data: JSON.stringify({
-          event_id: eventId,
-          title: editedTitle,
-          description: editedDescription
-        }),
-        contentType: 'application/json',
-        success: function(response) {
-          console.log('Event details updated:', response);
-        },
-        error: function(error) {
-          console.error('Error updating event details:', error);
-        }
-      });
+    // Get the event_id from the hidden input field
+    let eventId = document.getElementById('editEventId').value;
+
+    if ((editedTitle && editedTitle !== originalTitle) || 
+        (editedDescription && editedDescription !== originalDescription)) {
+        console.log("calling change event details")
+        $.ajax({
+            url: '/change_event_details',
+            type: 'POST',
+            data: JSON.stringify({
+                event_id: eventId,
+                title: editedTitle,
+                description: editedDescription
+            }),
+            contentType: 'application/json',
+            success: function(response) {
+                console.log('Event details updated:', response);
+                location.reload(); // Reload the page
+            },
+            error: function(error) {
+                console.error('Error updating event details:', error);
+            }
+        });
     }
-  
+
     // Check if date, start time, end time, or room has changed
     let originalDate = document.getElementById('editDate').value;
     let originalStartTime = document.getElementById('editStartTime').value;
     let originalEndTime = document.getElementById('editEndTime').value;
     let originalRoom = document.getElementById('editRoom').value;
-  
-    if (editedDate !== originalDate || editedStartTime !== originalStartTime || editedEndTime !== originalEndTime || editedRoom !== originalRoom) {
-      $.ajax({
-        url: '/change_reservation',
-        type: 'POST',
-        data: JSON.stringify({
-          event_id: eventId,
-          day: editedDate,
-          to_start: editedStartTime,
-          to_end: editedEndTime,
-          room: editedRoom
-        }),
-        contentType: 'application/json',
-        success: function(response) {
-          console.log('Reservation updated:', response);
-        },
-        error: function(error) {
-          console.error('Error updating reservation:', error);
-        }
-      });
+
+    if ((editedDate && editedDate !== originalDate) || 
+        (editedStartTime && editedStartTime !== originalStartTime) || 
+        (editedEndTime && editedEndTime !== originalEndTime) || 
+        (editedRoom && editedRoom !== originalRoom)) {
+        console.log("calling change reservation")
+        $.ajax({
+            url: '/change_reservation',
+            type: 'POST',
+            data: JSON.stringify({
+                event_id: eventId,
+                day: editedDate,
+                to_start: editedStartTime,
+                to_end: editedEndTime,
+                room: editedRoom
+            }),
+            contentType: 'application/json',
+            success: function(response) {
+                console.log('Reservation updated:', response);
+                location.reload(); // Reload the page
+            },
+            error: function(error) {
+                console.error('Error updating reservation:', error);
+            }
+        });
     }
-  
+
     // Close the edit modal
     $('#editBookingModal').modal('hide');
-  }
+}
 
 function showEditInput(field) {
     const mainInput = document.getElementById(field);
