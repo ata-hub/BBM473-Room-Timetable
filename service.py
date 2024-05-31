@@ -161,6 +161,16 @@ class UserService():
             rooms = [(str(item["dname"]) + " - " + str(item["rname"])) for item in room_data]
 
         return rooms
+    
+    def get_department_rooms(self, department):   
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+        cursor.execute("""SELECT name, room_id FROM rooms 
+                        WHERE department_id = %s""", (department, ))
+
+        rooms = cursor.fetchall()
+        return rooms
 
     def get_all_departments(self):
         conn = get_db_connection()

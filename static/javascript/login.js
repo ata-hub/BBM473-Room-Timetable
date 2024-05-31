@@ -64,4 +64,29 @@ $(document).ready(function() {
             }
         });
     });
+
+    $(document).ready(function() {
+        $('#guestLoginForm').on('submit', function(event) {
+            event.preventDefault(); // Prevent the form from submitting the traditional way
+
+            var departmentId = $('#department').val();
+            var departmentName = $('#department option:selected').text();
+
+            // Send the data via AJAX
+            $.ajax({
+                type: 'POST',
+                url: '/guest',
+                data: { departmentId: departmentId,
+                    departmentName: departmentName
+                 },
+                success: function(response) {
+                    // Redirect to the guest page
+                    $('body').html(response);
+                },
+                error: function(error) {
+                    console.error('Error:', error);
+                }
+            });
+        });
+    });
 });

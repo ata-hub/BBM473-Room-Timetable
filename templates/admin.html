@@ -6,7 +6,7 @@
 <link
   rel="stylesheet"
   type="text/css"
-  href="{{ url_for('static', filename='css/student.css') }}"
+  href="{{ url_for('static', filename='css/admin.css') }}"
 />
 
 {% endblock %} {% block body %}
@@ -54,5 +54,5 @@
   var username = "{{ username }}"; // Embed username variable from Flask
   var department = "{{ department }}"; // Embed department variable from Flask
 </script>
-<script src="{{ url_for('static', filename='javascript/student.js') }}"></script>
+<script src="{{ url_for('static', filename='javascript/admin.js') }}"></script>
 {% endblock %} {% block is_student %}True{% endblock %}
