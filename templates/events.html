@@ -10,16 +10,18 @@
   href="{{ url_for('static', filename='css/events.css') }}"
 />
 {% endblock %} {% block body %}
-<h1 class="text-center">Events</h1>
+<h1 class="text-center">Bookings</h1>
 <div class="card-container">
   {% for booking in reservationList %}
   <div
     class="card"
-    onclick="showDetails(this.getAttribute('data-title'), this.getAttribute('data-description'))"
+    onclick="showDetails(this.getAttribute('data-title'), this.getAttribute('data-description'), this.getAttribute('data-capacity'), this.getAttribute('data-features'))"
     data-toggle="modal"
     data-target="#bookingModal"
     data-title="{{ booking.title }}"
     data-description="{{ booking.description }}"
+    data-capacity="{{ booking.capacity }}"
+    data-features="{{ booking.feature_name }}"
   >
     <h3>{{ booking.title }}</h3>
     <p>Room: {{ booking.room_name }}</p>
@@ -42,7 +44,8 @@
         onclick="editBooking(event, {
           'title': '{{ booking.title }}',
           'description': '{{ booking.description }}',
-          'room_id': '{{ booking.room_id }}',
+          'room_name': '{{ booking.room_name }}',
+          'date': '{{ booking.date }}',
           'start_time': '{{ booking.start_time }}',
           'end_time': '{{ booking.end_time }}'
         }); event.stopPropagation();"
@@ -79,6 +82,8 @@
       <div class="modal-body">
         <h2 id="modalTitle"></h2>
         <p id="modalDescription"></p>
+        <p id="modalCapacity"></p>
+        <p id="modalFeatures"></p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">
@@ -163,11 +168,11 @@
             <div class="custom-input-group">
               <input type="text" class="form-control" id="editRoom" disabled />
               <div class="edit-input-container" style="display: none">
-                <input
-                  type="text"
-                  class="form-control edit-input"
-                  id="editRoomInput"
-                />
+                <select class="form-control edit-input" id="editRoomInput">
+                  {% for room in room_data %}
+                  <option value="{{ room.id }}">{{ room.name }}</option>
+                  {% endfor %}
+                </select>
               </div>
               <button
                 class="btn btn-primary edit-button"
@@ -179,20 +184,55 @@
             </div>
           </div>
           <div class="form-group">
+            <label for="editStartTime">Date</label>
+            <div class="custom-input-group">
+              <input type="text" class="form-control" id="editDate" disabled />
+              <div class="edit-input-container" style="display: none">
+                <input
+                  type="datetime-local"
+                  class="form-control edit-input"
+                  id="editDateInput"
+                />
+              </div>
+              <button
+                class="btn btn-primary edit-button"
+                type="button"
+                onclick="showEditInput('editDate')"
+              >
+                <i class="fas fa-pencil-alt"></i>
+              </button>
+            </div>
+          </div>
+          <div class="form-group">
             <label for="editStartTime">Start Time</label>
             <div class="custom-input-group">
               <input
-                type="datetime-local"
+                type="text"
                 class="form-control"
                 id="editStartTime"
                 disabled
               />
               <div class="edit-input-container" style="display: none">
-                <input
-                  type="datetime-local"
-                  class="form-control edit-input"
-                  id="editStartTimeInput"
-                />
+                <div class="d-flex align-items-center">
+                  <select
+                    class="form-control mr-1 edit-input"
+                    id="editStartTimeHour"
+                    required
+                  >
+                    {% for hour in range(8, 20) %}
+                    <option value="{{ hour }}">{{ hour }}</option>
+                    {% endfor %}
+                  </select>
+                  <span>:</span>
+                  <select
+                    class="form-control ml-1 edit-input"
+                    id="editStartTimeMinute"
+                    required
+                  >
+                    <option value="00">00</option>
+                    <option value="30">30</option>
+                  </select>
+                </div>
               </div>
               <button
                 class="btn btn-primary edit-button"
@@ -207,17 +247,32 @@
             <label for="editEndTime">End Time</label>
             <div class="custom-input-group">
               <input
-                type="datetime-local"
+                type="text"
                 class="form-control"
                 id="editEndTime"
                 disabled
               />
               <div class="edit-input-container" style="display: none">
-                <input
-                  type="datetime-local"
-                  class="form-control edit-input"
-                  id="editEndTimeInput"
-                />
+                <div class="d-flex align-items-center">
+                  <select
+                    class="form-control mr-1 edit-input"
+                    id="editEndTimeHour"
+                    required
+                  >
+                    {% for hour in range(8, 20) %}
+                    <option value="{{ hour }}">{{ hour }}</option>
+                    {% endfor %}
+                  </select>
+                  <span>:</span>
+                  <select
+                    class="form-control ml-1 edit-input"
+                    id="editEndTimeMinute"
+                    required
+                  >
+                    <option value="00">00</option>
+                    <option value="30">30</option>
+                  </select>
+                </div>
               </div>
               <button
                 class="btn btn-primary edit-button"
@@ -241,6 +296,46 @@
     </div>
   </div>
 </div>
+<!-- Confirmation Modal -->
+<div
+  class="modal fade"
+  id="confirmationModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="confirmationModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmationModalLabel">Confirmation</h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>
+          You are about to delete this event. All the bookings with this event
+          will be deleted. Do you wish to proceed?
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" id="confirmDelete">
+          Yes
+        </button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          No
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-timepicker/0.5.2/js/bootstrap-timepicker.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
