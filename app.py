@@ -30,16 +30,16 @@ def get_dummy_reservations():
             'title': 'Conference',
             'description': 'Annual Conference',
             'room_id': 101,
-            'start_time': datetime.datetime(2024, 6, 15, 9, 0),
-            'end_time': datetime.datetime(2024, 6, 15, 17, 0)
+            'start_time': datetime(2024, 6, 15, 9, 0),
+            'end_time': datetime(2024, 6, 15, 17, 0)
         },
         {
             'event_id': 2,
             'title': 'Workshop',
             'description': 'Python Workshop',
             'room_id': 202,
-            'start_time': datetime.datetime(2024, 6, 16, 10, 0),
-            'end_time': datetime.datetime(2024, 6, 16, 12, 0)
+            'start_time': datetime(2024, 6, 16, 10, 0),
+            'end_time': datetime(2024, 6, 16, 12, 0)
         }
         # Add more dummy bookings as needed
     ]
@@ -194,11 +194,47 @@ def feature_request():
 
 @app.route('/admin/pending_student_request')
 def pending_student_requests():
-    return render_template('student_requests.html')
+    requests = UserService().list_awating_permission_requests()
+    print("pending student requests:", requests)
+    return render_template('pending_students.html', requests=requests, user_role="admin")
+
+@app.route('/admin/accept_student_request', methods=['POST'])
+def accept_student_requests():
+    data = request.json
+    print("data received:",data)
+    permission_id = data.get('permission_id')
+    acceptance = data.get('acceptance')
+    permissionDto={"id": permission_id, "acceptance": acceptance}
+    try:
+        result = UserService().give_permission(permissionDto)
+        if result is not None:  # Check if result is not None before subscripting
+            if result:  # Assuming result is a dictionary with 'success' and 'message' keys
+                return jsonify({"success": True, "message": result})
+            else:
+                return jsonify({"success": False, "message": "Permission not granted."}), 400
+        else:
+            return jsonify({"success": False, "message": "Failed to process the request."}), 400
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 400
 
 @app.route('/admin/pending_feature_request')
 def pending_feature_requests():
-    return render_template('feature_requests.html')
+    requests = UserService().list_awating_feature_requests()
+    return render_template('pending_features.html', requests=requests, user_role="admin")
+
+@app.route('/admin/accept_feature_request', methods=['POST'])
+def accept_feature_permission():
+    data = request.json
+    print("feature data:", data)
+    request_id = data.get('request_id')
+    acceptance = data.get('acceptance')
+    requestDto={"request_id": request_id, "acceptance": acceptance}
+    try:
+        result = RoomService().add_new_feature(requestDto)
+        if result:
+            return jsonify({"success": True, "message": result})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 400
 
 # @app.route('/reservation', methods=['POST'])
 # def make_reservation():

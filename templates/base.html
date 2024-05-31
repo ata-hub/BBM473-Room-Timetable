@@ -65,10 +65,14 @@
             <a href="/events">My Bookings</a>
           </li>
           <li>
-            <a href="#">Pending Feature Requests</a>
+            <a href="/admin/pending_feature_request"
+              >Pending Feature Requests</a
+            >
           </li>
           <li>
-            <a href="#">Pending Student Requests</a>
+            <a href="/admin/pending_student_request"
+              >Pending Student Requests</a
+            >
           </li>
           {% endif %}
         </ul>
@@ -260,7 +264,12 @@
               </div>
               <div class="form-group">
                 <label for="room">Room</label>
-                <select class="form-control" id="studentRoom" name ="studentRoom" required>
+                <select
+                  class="form-control"
+                  id="studentRoom"
+                  name="studentRoom"
+                  required
+                >
                   {% for room in room_data %}
                   <option value="{{ room.room_id }}">{{ room.name }}</option>
                   {% endfor %}

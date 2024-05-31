@@ -32,5 +32,7 @@ p{
     left: 0; /* Slide in when open */
 }
 
-
+.content{
+    width: 100%;
+}
 

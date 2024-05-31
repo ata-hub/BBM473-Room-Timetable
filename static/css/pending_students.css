@@ -1,0 +1,28 @@
+/* pending_students.css */
+.card {
+    width: 100%;
+    margin: 0;
+    border-radius: 0;
+    border: none;
+  }
+  
+  .card-body {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+  }
+  
+  .card-body h5, .card-body p {
+    margin: 0;
+  }
+
+  .btn-square {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    font-size: 1.2rem;
+    line-height: 40px;
+    text-align: center;
+  }
+  
