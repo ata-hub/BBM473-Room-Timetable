@@ -74,10 +74,10 @@ function saveChanges() {
     let startHour = document.getElementById('editStartTimeHour').value;
     let startMinute = document.getElementById('editStartTimeMinute').value;
     let editedStartTime = (startHour && startMinute) ? `${startHour}:${startMinute}` : null;
-    //burada editedStartTime ':' şeklinde gelebilir ve iften kaçıyor
+
     let endHour = document.getElementById('editEndTimeHour').value;
     let endMinute = document.getElementById('editEndTimeMinute').value;
-    let editedEndTime = (endHour && endMinute) ? `${endHour}:${endMinute}`: null;
+    let editedEndTime = (endHour && endMinute) ? `${endHour}:${endMinute}` : null;
 
     // Check if title or description has changed
     let originalTitle = document.getElementById('editTitle').value;
@@ -93,8 +93,8 @@ function saveChanges() {
             type: 'POST',
             data: JSON.stringify({
                 event_id: eventId,
-                title: editedTitle,
-                description: editedDescription
+                title: (editedTitle !== null) ? editedTitle : originalTitle,
+                description: (editedDescription !== null) ? editedDescription : originalDescription
             }),
             contentType: 'application/json',
             success: function(response) {
@@ -123,10 +123,10 @@ function saveChanges() {
             type: 'POST',
             data: JSON.stringify({
                 event_id: eventId,
-                day: editedDate,
-                to_start: editedStartTime,
-                to_end: editedEndTime,
-                room: editedRoom
+                day: (editedDate !== null) ? editedDate : originalDate,
+                to_start: (editedStartTime !== null) ? editedStartTime : originalStartTime,
+                to_end: (editedEndTime !== null) ? editedEndTime : originalEndTime,
+                room: (editedRoom !== null) ? editedRoom : originalRoom
             }),
             contentType: 'application/json',
             success: function(response) {
