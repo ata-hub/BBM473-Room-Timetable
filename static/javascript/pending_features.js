@@ -20,7 +20,7 @@ $(document).ready(function() {
           }
         },
         error: function(xhr) {
-          alert('Error: ' + xhr.responseText);
+          alert('Error: ' + xhr.responseText); // error message from app.py
         }
       });
     });
