@@ -12,8 +12,6 @@ function showDetails(title, description, capacity, features) {
 function editBooking(event, booking) {
     event.stopPropagation();  // Stop the event from propagating to parent elements
     event.preventDefault();   // Prevent the default action
-
-    console.log("edit screen opened");
     document.getElementById('editTitle').value = booking.title;
     document.getElementById('editDescription').value = booking.description;
     document.getElementById('editRoom').value = booking.room_name;
@@ -69,10 +67,11 @@ function saveChanges() {
     let editedDescription = document.getElementById('editDescriptionInput').value;
     let editedRoom = document.getElementById('editRoomInput').value;
     let editedDate = document.getElementById('editDateInput').value;
-
+    console.log("edited room is:",editedRoom)
     // Get the values from the custom time pickers
     let startHour = document.getElementById('editStartTimeHour').value;
     let startMinute = document.getElementById('editStartTimeMinute').value;
+    console.log("startHour:",startHour,"startMinute:",startMinute)
     let editedStartTime = (startHour && startMinute) ? `${startHour}:${startMinute}` : null;
 
     let endHour = document.getElementById('editEndTimeHour').value;
@@ -82,23 +81,74 @@ function saveChanges() {
     // Check if title or description has changed
     let originalTitle = document.getElementById('editTitle').value;
     let originalDescription = document.getElementById('editDescription').value;
+    let originalRoom = document.getElementById('editRoom').value;
+    let originalDate = document.getElementById('editDate').value;
+    let originalStartTime = document.getElementById('editStartTime').value;
+    let originalEndTime = document.getElementById('editEndTime').value;
     // Get the event_id from the hidden input field
     let eventId = document.getElementById('editEventId').value;
 
-    if ((editedTitle && editedTitle !== originalTitle) || 
-        (editedDescription && editedDescription !== originalDescription)) {
-        console.log("calling change event details")
+    // Initialize arrays to store changed fields
+    let changedFields = [];
+    let changedReservationFields = [];
+
+    // Check if title has changed and add to changedFields
+    if (editedTitle.trim() !== "" && editedTitle !== originalTitle && editedTitle) {
+        console.log("pushing title:", editedTitle)
+        changedFields.push({ key: 'title', value: editedTitle });
+    }
+
+    // Check if description has changed and add to changedFields
+    if (editedDescription.trim() !== "" && editedDescription !== originalDescription && editedDescription) {
+        console.log("pushing description:", editedDescription)
+        changedFields.push({ key: 'description', value: editedDescription });
+    }
+
+    // Check if date has changed and add to changedReservationFields
+    if (editedDate.trim() !== "" && editedDate !== originalDate && editedDate) {
+        console.log("pushing date:", editedDate)
+        changedReservationFields.push({ key: 'day', value: editedDate });
+    }
+
+    // Check if startTime has changed and add to changedReservationFields
+    if (editedStartTime !== null && editedStartTime) {
+        console.log("pushing startTime:", editedStartTime)
+        changedReservationFields.push({ key: 'to_start', value: editedStartTime });
+    }
+
+    // Check if endTime has changed and add to changedReservationFields
+    if (editedEndTime !== null && editedEndTime) {
+        console.log("pushing endtime:", editedEndTime)
+        changedReservationFields.push({ key: 'to_end', value: editedEndTime });
+    }
+
+    // Check if room has changed and add to changedReservationFields
+    if (editedRoom.trim() !== "" && editedRoom !== originalRoom && editedRoom) {
+        console.log("pushing room:", editedRoom)
+        changedReservationFields.push({ key: 'room', value: editedRoom });
+    }
+
+    // Add original values for fields not in changedFields
+    if (!changedFields.find(field => field.key === 'title')) {
+        changedFields.push({ key: 'title', value: originalTitle });
+    }
+    if (!changedFields.find(field => field.key === 'description')) {
+        changedFields.push({ key: 'description', value: originalDescription });
+    }
+
+    // Send AJAX request for event details if any fields have changed
+    if (changedFields.length > 0) {
+        console.log("Calling change event details with changed fields:", changedFields);
         $.ajax({
             url: '/change_event_details',
             type: 'POST',
             data: JSON.stringify({
                 event_id: eventId,
-                title: (editedTitle !== null) ? editedTitle : originalTitle,
-                description: (editedDescription !== null) ? editedDescription : originalDescription
+                changed_fields: changedFields
             }),
             contentType: 'application/json',
             success: function(response) {
-                console.log('Event details updated:', response);
+                console.log('Event details updated successfully:', response);
                 location.reload(); // Reload the page
             },
             error: function(error) {
@@ -107,30 +157,33 @@ function saveChanges() {
         });
     }
 
-    // Check if date, start time, end time, or room has changed
-    let originalDate = document.getElementById('editDate').value;
-    let originalStartTime = document.getElementById('editStartTime').value;
-    let originalEndTime = document.getElementById('editEndTime').value;
-    let originalRoom = document.getElementById('editRoom').value;
+    // Add original values for fields not in changedReservationFields
+    if (!changedReservationFields.find(field => field.key === 'day')) {
+        changedReservationFields.push({ key: 'day', value: originalDate });
+    }
+    if (!changedReservationFields.find(field => field.key === 'to_start')) {
+        changedReservationFields.push({ key: 'to_start', value: originalStartTime });
+    }
+    if (!changedReservationFields.find(field => field.key === 'to_end')) {
+        changedReservationFields.push({ key: 'to_end', value: originalEndTime });
+    }
+    if (!changedReservationFields.find(field => field.key === 'room')) {
+        changedReservationFields.push({ key: 'room', value: originalRoom });
+    }
 
-    if ((editedDate && editedDate !== originalDate) || 
-        (editedStartTime && editedStartTime !== originalStartTime) || 
-        (editedEndTime && editedEndTime !== originalEndTime) || 
-        (editedRoom && editedRoom !== originalRoom)) {
-        console.log("calling change reservation")
+    // Send AJAX request for reservation details if any fields have changed
+    if (changedReservationFields.length > 0) {
+        console.log("Calling change reservation with changed fields:", changedReservationFields);
         $.ajax({
             url: '/change_reservation',
             type: 'POST',
             data: JSON.stringify({
                 event_id: eventId,
-                day: (editedDate !== null) ? editedDate : originalDate,
-                to_start: (editedStartTime !== null) ? editedStartTime : originalStartTime,
-                to_end: (editedEndTime !== null) ? editedEndTime : originalEndTime,
-                room: (editedRoom !== null) ? editedRoom : originalRoom
+                changed_fields: changedReservationFields
             }),
             contentType: 'application/json',
             success: function(response) {
-                console.log('Reservation updated:', response);
+                console.log('Reservation updated successfully:', response);
                 location.reload(); // Reload the page
             },
             error: function(error) {
@@ -143,12 +196,10 @@ function saveChanges() {
     $('#editBookingModal').modal('hide');
 }
 
+
 function showEditInput(field) {
     const mainInput = document.getElementById(field);
     const editInputContainer = mainInput.parentElement.querySelector('.edit-input-container');
-
-    console.log('Main input:', mainInput);
-    console.log('Edit input container:', editInputContainer);
 
     if (editInputContainer.style.display === 'none' || editInputContainer.style.display === '') {
         // Set the value of the edit input to the main input's value
@@ -159,8 +210,6 @@ function showEditInput(field) {
         editInputContainer.style.display = 'none';
     }
 
-    console.log('After toggle - Main input display:', mainInput.style.display);
-    console.log('After toggle - Edit input container display:', editInputContainer.style.display);
 }
 
 function closeModal() {

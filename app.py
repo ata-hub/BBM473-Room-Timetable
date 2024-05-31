@@ -287,6 +287,7 @@ def eventsPage():
     reservationList = RoomService().get_all_my_reservations()
     user_role = session.get("role")
     room_data = user_service.get_user_rooms()
+    print("room_data:", room_data)
     return render_template('events.html', reservationList=reservationList, user_role=user_role,
                            room_data=room_data)
 
@@ -311,18 +312,58 @@ def cancel_reservation_route():
 @app.route('/change_event_details', methods=['POST'])
 def change_event_details_controller():
     event_dto = request.json
-    print("change event received object:", event_dto)
-    result = RoomService().change_event_details(event_dto)
-    print("change event result:",result)
+    print("Change event received object:", event_dto)
+    changed_fields = event_dto.get('changed_fields', [])
+    event_id = event_dto.get('event_id')
+    
+    # Create a new eventDto
+    eventDto = {
+        'title': None,
+        'description': None,
+        'event_id': event_id
+    }
+
+    # Update eventDto with changed fields
+    for field in changed_fields:
+        if field['key'] == 'title':
+            eventDto['title'] = field['value']
+        elif field['key'] == 'description':
+            eventDto['description'] = field['value']
+
+    result = RoomService().change_event_details(eventDto)
+    print("Change event result:", result)
     return jsonify({'result': result})
 
 #my booking update function calls these two functions
 @app.route('/change_reservation', methods=['POST'])
 def change_reservation_controller():
     change_dto = request.json
-    print("change reservation received object:", change_dto)
-    result = RoomService().change_reservation(change_dto)
-    print("change reservation result:",result)
+    print("Change reservation received object:", change_dto)
+    changed_fields = change_dto.get('changed_fields', [])
+    event_id = change_dto.get('event_id')
+
+    # Create a new changeDto
+    changeDto = {
+        'to_start': None,
+        'to_end': None,
+        'day': None,
+        'room': None,
+        'event_id': event_id
+    }
+
+    # Update changeDto with changed fields
+    for field in changed_fields:
+        if field['key'] == 'to_start':
+            changeDto['to_start'] = field['value']
+        elif field['key'] == 'to_end':
+            changeDto['to_end'] = field['value']
+        elif field['key'] == 'day':
+            changeDto['day'] = field['value']
+        elif field['key'] == 'room':
+            changeDto['room'] = field['value']
+
+    result = RoomService().change_reservation(changeDto)
+    print("Change reservation result:", result)
     return jsonify({'result': result})
 
 if __name__ == "__main__":
