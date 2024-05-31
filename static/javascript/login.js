@@ -81,7 +81,7 @@ $(document).ready(function() {
                  },
                 success: function(response) {
                     // Redirect to the guest page
-                    //$('body').html(response);
+                    $('body').html(response);
                 },
                 error: function(error) {
                     console.error('Error:', error);

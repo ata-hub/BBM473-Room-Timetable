@@ -285,7 +285,6 @@ def accept_feature_permission():
 def eventsPage():
     # get reservation from backend service
     reservationList = RoomService().get_all_my_reservations()
-    print("reservationList is:",reservationList)
     user_role = session.get("role")
     room_data = user_service.get_user_rooms()
     return render_template('events.html', reservationList=reservationList, user_role=user_role,
@@ -312,14 +311,18 @@ def cancel_reservation_route():
 @app.route('/change_event_details', methods=['POST'])
 def change_event_details_controller():
     event_dto = request.json
+    print("change event received object:", event_dto)
     result = RoomService().change_event_details(event_dto)
+    print("change event result:",result)
     return jsonify({'result': result})
 
 #my booking update function calls these two functions
 @app.route('/change_reservation', methods=['POST'])
 def change_reservation_controller():
     change_dto = request.json
+    print("change reservation received object:", change_dto)
     result = RoomService().change_reservation(change_dto)
+    print("change reservation result:",result)
     return jsonify({'result': result})
 
 if __name__ == "__main__":
