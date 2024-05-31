@@ -125,6 +125,23 @@ def adminPage():
                             username=session.get('username'),
                             department=session.get('department'))
 
+@app.route('/guest', methods=['GET', 'POST'])
+def guestPage():
+    # Define time slots
+    time_slots = [f"{hour}:00" for hour in range(8, 20)]
+    #TODO roomları backendden al (bütün departman odaları)
+    department = request.form.get('departmentName')
+    session['department'] = request.form.get('departmentId')
+    room_data = UserService().get_department_rooms(session.get("department"))
+    print("rooms for guest:",room_data)
+    print("guest department:",department)
+    print("guest department_id:",session.get("department"))
+    return render_template('guest.html', 
+                           room_data=room_data, 
+                           time_slots=time_slots, 
+                           user_role="guest",
+                           department=department)
+
 #instructor making student request
 @app.route('/student_request', methods=['POST'])
 def student_request():
@@ -267,9 +284,10 @@ def accept_feature_permission():
 @app.route('/events', methods=['GET'])
 def eventsPage():
     # get reservation from backend service
-    reservationList = get_dummy_reservations() #room_service.get_all_my_reservations()
-    #user_role = session.get('user_role')  # Adjust based on how you store the user role
-    return render_template('events.html', reservationList=reservationList) # TODO user_role=user_role bunu ekle
+    reservationList = RoomService().list_user_reservations()
+    print("reservationList is:",reservationList)
+    user_role = session.get("user_role")
+    return render_template('events.html', reservationList=reservationList, user_role=user_role)
 
 # @app.route('/delete-event', methods=['DELETE'])
 # def delete_event():
