@@ -67,11 +67,11 @@ function saveChanges() {
     let editedDescription = document.getElementById('editDescriptionInput').value;
     let editedRoom = document.getElementById('editRoomInput').value;
     let editedDate = document.getElementById('editDateInput').value;
-
+    console.log("edited room is:",editedRoom)
     // Get the values from the custom time pickers
     let startHour = document.getElementById('editStartTimeHour').value;
     let startMinute = document.getElementById('editStartTimeMinute').value;
-    console.log("startHour:",startHour,"startMinıute:",startMinute)
+    console.log("startHour:",startHour,"startMinute:",startMinute)
     let editedStartTime = (startHour && startMinute) ? `${startHour}:${startMinute}` : null;
 
     let endHour = document.getElementById('editEndTimeHour').value;
