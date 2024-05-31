@@ -468,8 +468,8 @@ class RoomService():
         cursor = conn.cursor(cursor_factory=RealDictCursor)
 
         try:
-            email_subject = "Event canceled."
-            email_content = " titled event has been canceled"
+            email_subject = "Event cancelled."
+            email_content = " titled event has been cancelled"
             self.send_emails(email_content, email_subject, event_id)
             
             cursor.execute(tx_sql, {'event_id': event_id, 'curr_user': user})

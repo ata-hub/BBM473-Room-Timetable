@@ -284,17 +284,43 @@ def accept_feature_permission():
 @app.route('/events', methods=['GET'])
 def eventsPage():
     # get reservation from backend service
-    reservationList = RoomService().list_user_reservations()
+    reservationList = RoomService().get_all_my_reservations()
     print("reservationList is:",reservationList)
-    user_role = session.get("user_role")
-    return render_template('events.html', reservationList=reservationList, user_role=user_role)
+    user_role = session.get("role")
+    room_data = user_service.get_user_rooms()
+    return render_template('events.html', reservationList=reservationList, user_role=user_role,
+                           room_data=room_data)
 
-# @app.route('/delete-event', methods=['DELETE'])
-# def delete_event():
+@app.route('/cancel-reservation', methods=['POST'])
+def cancel_reservation_route():
+    if request.method == 'POST':
+        # Get the event_id from the request data
+        event_id = request.form.get('event_id')
 
-# @app.route('/change', methods=['POST'])
-# def change_booking():
+        # Call the cancel_reservation function from your service.py
+        result = RoomService().cancel_reservation(event_id)
 
+        # You might want to return a response based on the result of the cancellation
+        if result == "True":
+            return "Reservation cancelled successfully", 200
+        else:
+            return "Failed to cancel reservation", 500
+    else:
+        # Handle unsupported methods
+        return "Method not allowed", 405
+#my booking update function calls these two functions
+@app.route('/change_event_details', methods=['POST'])
+def change_event_details_controller():
+    event_dto = request.json
+    result = RoomService().change_event_details(event_dto)
+    return jsonify({'result': result})
+
+#my booking update function calls these two functions
+@app.route('/change_reservation', methods=['POST'])
+def change_reservation_controller():
+    change_dto = request.json
+    result = RoomService().change_reservation(change_dto)
+    return jsonify({'result': result})
 
 if __name__ == "__main__":
     app.run(debug=True, port=7001)
