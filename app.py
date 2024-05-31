@@ -17,6 +17,18 @@ repeatDict = {
     'Yearly': 365
 }
 
+def timeslots(start_time_str, end_time_str):
+    start_time = datetime.strptime(start_time_str, '%H:%M')
+    end_time = datetime.strptime(end_time_str, '%H:%M')
+    current_time = start_time
+    intervals = []
+
+    while current_time <= end_time:
+        intervals.append(current_time.strftime('%H:%M'))
+        current_time += timedelta(minutes=30)
+
+    return intervals
+
 users = {
     'student_user': {'password': 'studentpass', 'role': 'student'},
     'instructor_user': {'password': 'instructorpass', 'role': 'instructor'},
@@ -84,12 +96,25 @@ room_data = [
      "Room 3"
 ]
 
-@app.route('/student')
+@app.route('/get-by-day', methods=['GET'])
+def get_reservation_for_day():
+    day = request.args.get('day')
+    mine = room_service.get_my_reservations_for_day(day)
+    other = room_service.get_other_reservarions_for_day(day)
+    print("mine: ", mine)
+    print("other: ", other)
+    return jsonify({
+        'my_reservations': mine,
+        'other_reservations': other
+    })
+
+@app.route('/student')  # TODO  bunu test et
 def studentPage():
-    # Define time slots
-    time_slots = [f"{hour}:00" for hour in range(8, 20)]
-    #TODO roomları backendden al (permissionlardan al)
+    time_slots = timeslots('08:00', '20:00')
     room_data = user_service.get_user_rooms()
+    mine = room_service.get_my_reservations_for_day(None)
+    other = room_service.get_other_reservarions_for_day(None)
+
     return render_template('student.html', 
                            room_data=room_data, 
                            time_slots=time_slots, 
@@ -99,25 +124,33 @@ def studentPage():
 
 @app.route('/instructor')
 def instructorPage():
-    # Define time slots
-    time_slots = [f"{hour}:00" for hour in range(8, 20)]
-    #TODO roomları backendden al (bütün departman odaları)
     room_data = user_service.get_user_rooms()
+    mine = room_service.get_my_reservations_for_day(None)
+    other = room_service.get_other_reservarions_for_day(None)
+    time_slots = timeslots('08:00', '20:00')
+
+    if mine == "False":
+        mine = []
+    if other == "False":
+        other = []
     # my_reservations = room_service.get_my_reservations_for_day(None)
-    print("rooms for instructor:",room_data)
+
     return render_template('instructor.html', 
                            room_data=room_data, 
                            time_slots=time_slots, 
                            user_role="instructor",
+                           my_reservations=mine, 
+                           other_reservations=other,
                            username=session.get('username'),
                            department=session.get('department'))
 
-@app.route('/admin')
+@app.route('/admin')   # TODO bunu test et
 def adminPage():
-    # Define time slots
-    time_slots = [f"{hour}:00" for hour in range(8, 20)]
-    #TODO roomları backendden al sistmdeki tüm odalar
+    time_slots = timeslots('08:00', '20:00')
     room_data = user_service.get_user_rooms()
+    mine = room_service.get_my_reservations_for_day(None)
+    other = room_service.get_other_reservarions_for_day(None)
+
     return render_template('admin.html',
                             room_data=room_data,
                             time_slots=time_slots,
@@ -128,7 +161,7 @@ def adminPage():
 @app.route('/guest', methods=['GET', 'POST'])
 def guestPage():
     # Define time slots
-    time_slots = [f"{hour}:00" for hour in range(8, 20)]
+    # time_slots = [f"{hour}:00" for hour in range(8, 20)]
     #TODO roomları backendden al (bütün departman odaları)
     department = request.form.get('departmentName')
     session['department'] = request.form.get('departmentId')

@@ -803,8 +803,8 @@ class RoomService():
             today = date.today()
             day = today.strftime("%d-%m-%Y")
         
-        cursor.execute("""SELECT e.title, e.description, e.organizer, r.name, r.capacity, r.type,
-                       f.name, rf.is_working, t.date, to_char(t.start_time, 'HH24:MI') AS start_time, 
+        cursor.execute("""SELECT e.title, e.description, e.organizer, r.name AS room_name, r.capacity, r.type,
+                       f.name AS feature_name, rf.is_working, t.date, to_char(t.start_time, 'HH24:MI') AS start_time, 
                        to_char(t.end_time, 'HH24:MI') AS end_time
                        FROM events e
                        INNER JOIN bookings b ON b.event_id = e.event_id
@@ -831,8 +831,8 @@ class RoomService():
             today = date.today()
             day = today.strftime("%d-%m-%Y") 
 
-        cursor.execute("""SELECT e.title, e.description, e.organizer, r.name, r.capacity, r.type,
-                       f.name, rf.is_working, to_char(t.start_time, 'HH24:MI') AS start_time, 
+        cursor.execute("""SELECT e.title, e.description, e.organizer, r.name AS room_name, r.capacity, r.type,
+                       f.name AS feature_name, rf.is_working, to_char(t.start_time, 'HH24:MI') AS start_time, 
                        to_char(t.end_time, 'HH24:MI') AS end_time
                        FROM events e
                        INNER JOIN bookings b ON b.event_id = e.event_id

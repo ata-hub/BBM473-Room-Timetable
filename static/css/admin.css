@@ -40,10 +40,6 @@
     margin-right: 10px;
 }
 
-.available {
-    background-color: green;
-}
-
 .reserved {
     background-color: purple;
 }
@@ -70,6 +66,9 @@ th, td {
 th {
     background-color: #f2f2f2;
     font-weight: bold;
+    font-size: 9px;
+    text-align: center;
+    padding-left: 0.01em;
 }
 
 tr:nth-child(even) {
