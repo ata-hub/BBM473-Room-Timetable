@@ -43,6 +43,7 @@ $(document).ready(function() {
             }
         });
     });
+
     $('#reserveRoomForm').on('submit', function (e) {
         e.preventDefault();
         const startHour = $('#startTimeHour').val();
@@ -59,26 +60,27 @@ $(document).ready(function() {
         $('#reserveRoomModal').modal('hide');
         $('#successModal').modal('show');
       });
-      $.getJSON('/list_features', function (data) {
-        const featureDropdown = $('#existingFeatures');
-        data.features.forEach(function (feature) {
-          featureDropdown.append(
-            `<option value="${feature.feature_id}">${feature.name}</option>`
-          );
-        });
-      });
 
-      // Show/hide the feature input field based on the selected option
-      $('#existingFeatures').on('change', function () {
-        const selectedValue = $(this).val();
-        if (selectedValue === 'other') {
-          $('#newFeatureGroup').show();
-          $('#feature').prop('required', true);
-        } else {
-          $('#newFeatureGroup').hide();
-          $('#feature').prop('required', false);
-        }
-      });
+    $.getJSON('/list_features', function (data) {
+    const featureDropdown = $('#existingFeatures');
+    data.features.forEach(function (feature) {
+        featureDropdown.append(
+        `<option value="${feature.feature_id}">${feature.name}</option>`
+        );
+    });
+    });
+
+    // Show/hide the feature input field based on the selected option
+    $('#existingFeatures').on('change', function () {
+    const selectedValue = $(this).val();
+    if (selectedValue === 'other') {
+        $('#newFeatureGroup').show();
+        $('#feature').prop('required', true);
+    } else {
+        $('#newFeatureGroup').hide();
+        $('#feature').prop('required', false);
+    }
+    });
       // Add the script to show/hide the End Date field
     const repeatDropdown = $('#eventRepeat');
     const endDateGroup = $('#endDateGroup');

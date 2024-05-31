@@ -180,7 +180,7 @@
                 <label for="room">Room</label>
                 <select class="form-control" id="room" required>
                   {% for room in room_data %}
-                  <option value="{{ room['name'] }}">{{ room['name'] }}</option>
+                  <option value="{{ room.room_id }}">{{ room['name'] }}</option>
                   {% endfor %}
                 </select>
               </div>

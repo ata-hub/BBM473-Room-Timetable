@@ -11,6 +11,12 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=14)
 user_service = UserService()
 room_service = RoomService()
 
+repeatDict = {
+    'Weekly': 7,
+    'Monthly': 30,
+    'Yearly': 365
+}
+
 users = {
     'student_user': {'password': 'studentpass', 'role': 'student'},
     'instructor_user': {'password': 'instructorpass', 'role': 'instructor'},
@@ -194,12 +200,47 @@ def pending_student_requests():
 def pending_feature_requests():
     return render_template('feature_requests.html')
 
-@app.route('/events')
+# @app.route('/reservation', methods=['POST'])
+# def make_reservation():
+#     day = request.form.get('eventDate')
+#     start_time = request.form.get('startTimeHour') + ':' + request.form.get('startTimeMinute')
+#     end_time = request.form.get('endTimeHour') + ':' + request.form.get('endTimeMinute')
+#     room = request.form.get('room')
+#     title = request.form.get('eventTitle')
+#     description = request.form.get('eventDescription')
+#     repeat = request.form.get('eventRepeat')
+
+#     requestDto = {
+#             'title': title, 
+#             'description': description, 
+#             'start_time': start_time,
+#             'end_time': end_time,
+#             'room': room
+#         }
+
+#     if repeat == 'Today':
+#         requestDto['day'] = day
+
+
+#     else:
+#         requestDto['start_day'] = day
+#         requestDto['end_day'] = request.form.get('endDate')
+#         requestDto['interval'] = repeatDict[repeat]
+        
+
+@app.route('/events', methods=['GET'])
 def eventsPage():
     # get reservation from backend service
-    reservationList = get_dummy_reservations()
+    reservationList = get_dummy_reservations() #room_service.get_all_my_reservations()
     #user_role = session.get('user_role')  # Adjust based on how you store the user role
     return render_template('events.html', reservationList=reservationList) # TODO user_role=user_role bunu ekle
+
+# @app.route('/delete-event', methods=['DELETE'])
+# def delete_event():
+
+# @app.route('/change', methods=['POST'])
+# def change_booking():
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=7001)

@@ -117,7 +117,7 @@ class UserService():
         conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         # filter permissons by admin's department
-        cursor.execute("""SELECT rpr.request_id, rpr.room_id, rpr.username 
+        cursor.execute("""SELECT rpr.request_id, rpr.room_id, rpr.username, r.name
                        FROM room_permission_requests rpr, rooms r 
                        WHERE rpr.room_id = r.room_id AND r.department_id = %s""", (department, ))
         permissions = cursor.fetchall()
@@ -128,7 +128,7 @@ class UserService():
         conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         # filter permissons by admin's department
-        cursor.execute("""SELECT fr.request_id, fr.room_id, fr.feature_id, fr.description 
+        cursor.execute("""SELECT fr.request_id, fr.room_id, fr.feature_id, fr.description, r.name 
                        FROM feature_requests fr, rooms r 
                        WHERE fr.room_id = r.room_id AND r.department_id = %s""", (department, ))
         requests = cursor.fetchall()
@@ -764,8 +764,10 @@ class RoomService():
         conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
 
-        cursor.execute("""SELECT e.title, e.description, e.organizer, r.name, r.capacity, r.type,
-                       f.name, rf.is_working, t.date, to_char(t.start_time, 'HH24:MI') AS start_time, 
+        cursor.execute("""SELECT e.event_id, e.title, e.description, e.organizer, 
+                       r.room_id, r.name AS room_name, r.capacity, r.type,
+                       f.name AS feature_name, rf.is_working, t.date, 
+                       to_char(t.start_time, 'HH24:MI') AS start_time, 
                        to_char(t.end_time, 'HH24:MI') AS end_time
                        FROM events e
                        INNER JOIN bookings b ON b.event_id = e.event_id
