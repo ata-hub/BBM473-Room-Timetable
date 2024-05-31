@@ -35,7 +35,8 @@
       <tr>
         <td>{{ room.name }}</td>
         {% for time_slot in time_slots %}
-        <td><!-- Populate cell with room availability or other data --></td>
+        <!-- <td></td> -->
+        <td data-room-name="{{ room.name }}" data-time-slot="{{ time_slot }}"></td>
         {% endfor %}
       </tr>
       {% endfor %}
@@ -43,15 +44,16 @@
   </table>
 
   <div class="legend">
-    <span class="available"></span> Available &nbsp;&nbsp;&nbsp;&nbsp;
     <span class="reserved"></span> Reserved &nbsp;&nbsp;&nbsp;&nbsp;
     <span class="your-reservations"></span> Your Reservations
   </div>
 </div>
 <script>
-  var userRole = "{{ user_role }}"; // Embed is_student variable from Flask
+  var userRole = '{{ user_role }}'; // Embed is_student variable from Flask
   var username = "{{ username }}"; // Embed username variable from Flask
   var department = "{{ department }}"; // Embed department variable from Flask
 </script>
+<script type="application/json" id="my-reservations">{{ my_reservations | tojson | safe }}</script>
+<script type="application/json" id="other-reservations">{{ other_reservations | tojson | safe }}</script>
 <script src="{{ url_for('static', filename='javascript/instructor.js') }}"></script>
 {% endblock %} {% block is_student %}True{% endblock %}
