@@ -745,16 +745,18 @@ class RoomService():
     def get_timetable(self, start, end, department):    # anasayfada göstermek için -- start end date olabilir
         if start is None or end is None:
             today = date.today()
-            start = today - timedelta(days=today.weekday())
-            end = start + timedelta(days=6) 
+            start = today #- timedelta(days=today.weekday())
+            # end = start + timedelta(days=6) 
             start = start.strftime("%d-%m-%Y") 
-            end = end.strftime("%d-%m-%Y")
+            end = start
      
         conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
 
-        cursor.execute("""SELECT e.event_id , e.title , e.description, b.room_id, t.date, 
-                       to_char(t.start_time, 'HH24:MI') AS start_time, to_char(t.end_time, 'HH24:MI') AS end_time
+        cursor.execute("""SELECT e.event_id , e.title , e.description, 
+                       b.room_id, t.date, r.name AS room_name, 
+                       to_char(t.start_time, 'HH24:MI') AS start_time, 
+                       to_char(t.end_time, 'HH24:MI') AS end_time
                        FROM events e
                        INNER JOIN bookings b on b.event_id = e.event_id
                        INNER JOIN timeslots t on t.timeslot_id = b.timeslot_id
@@ -763,7 +765,7 @@ class RoomService():
                        AND r.department_id = %s""", (start, end, department))  
         
         timetable = cursor.fetchall()
-
+        
         if timetable:
             return timetable
         else:
