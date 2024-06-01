@@ -84,7 +84,7 @@ def guest_login():
     return jsonify(success=True, departments=departments)
 
 @app.route('/render-guest-page', methods=['GET'])
-def guest_smt():
+def guest_render():
     department_id = request.args.get('departmentId')
     department_name = request.args.get('departmentName')
     return jsonify(success=True, redirect_url=url_for('guestPage', department_name=department_name, department_id=department_id))
