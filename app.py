@@ -29,12 +29,6 @@ def timeslots(start_time_str, end_time_str):
 
     return intervals
 
-users = {
-    'student_user': {'password': 'studentpass', 'role': 'student'},
-    'instructor_user': {'password': 'instructorpass', 'role': 'instructor'},
-    'admin_user': {'password': 'adminpass', 'role': 'admin'},
-}
-
 def get_dummy_reservations():
     return [
         {
@@ -89,12 +83,34 @@ def guest_login():
     departments = user_service.get_all_departments()
     return jsonify(success=True, departments=departments)
 
-# Dummy room data (replace with actual data from the database)
-room_data = [
-    "Room 1",
-    "Room 2",
-     "Room 3"
-]
+@app.route('/render-guest-page', methods=['GET'])
+def guest_smt():
+    department_id = request.args.get('departmentId')
+    department_name = request.args.get('departmentName')
+    return jsonify(success=True, redirect_url=url_for('guestPage', department_name=department_name, department_id=department_id))
+
+@app.route('/guest', methods=['GET', 'POST'])
+def guestPage():
+    # Define time slots
+    # time_slots = [f"{hour}:00" for hour in range(8, 20)]
+    # department = request.form.get('departmentName')
+    # session['department'] = request.form.get('departmentId')
+    department_name = request.args.get('department_name')
+    department_id = request.args.get('department_id')
+    room_data = user_service.get_department_rooms(department_id)
+    reservations = room_service.get_timetable(None, None, department_id)
+    time_slots = timeslots('08:00', '20:00')
+
+    if reservations == "False":
+        reservations = []
+    
+    return render_template('guest.html', 
+                           room_data=room_data, 
+                           time_slots=time_slots, 
+                           user_role="guest",
+                           department=department_id,
+                           reservations=reservations,
+                           redirect_url=url_for('guestPage'))
 
 @app.route('/get-by-day', methods=['GET'])
 def get_reservation_for_day():
@@ -106,6 +122,19 @@ def get_reservation_for_day():
     return jsonify({
         'my_reservations': mine,
         'other_reservations': other
+    })
+
+@app.route('/get-by-dep', methods=['GET'])
+def get_by_department():
+    day = request.args.get('day')
+    dep = request.args.get('dep')
+    reservations = room_service.get_timetable(day, day, dep)
+    
+    if reservations == "False":
+        reservations = []
+
+    return jsonify({
+        'reservations': reservations
     })
 
 @app.route('/student')  # TODO  bunu test et
@@ -158,23 +187,6 @@ def adminPage():
                             username=session.get('username'),
                             department=session.get('department'))
 
-@app.route('/guest', methods=['GET', 'POST'])
-def guestPage():
-    # Define time slots
-    # time_slots = [f"{hour}:00" for hour in range(8, 20)]
-    #TODO roomları backendden al (bütün departman odaları)
-    department = request.form.get('departmentName')
-    session['department'] = request.form.get('departmentId')
-    room_data = UserService().get_department_rooms(session.get("department"))
-    print("rooms for guest:",room_data)
-    print("guest department:",department)
-    print("guest department_id:",session.get("department"))
-    return render_template('guest.html', 
-                           room_data=room_data, 
-                           time_slots=time_slots, 
-                           user_role="guest",
-                           department=department)
-
 #instructor making student request
 @app.route('/student_request', methods=['POST'])
 def student_request():
@@ -202,7 +214,6 @@ def student_request():
 def list_features():
     features = room_service.list_features()
     return jsonify(features=features)
-
 
 @app.route('/feature_request', methods=['POST'])
 def feature_request():
