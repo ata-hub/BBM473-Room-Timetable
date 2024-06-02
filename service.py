@@ -1,13 +1,12 @@
 from db import get_db_connection
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from flask import jsonify, session, send_file
+from flask import session, send_file
 from datetime import timedelta, date, datetime
 import pandas as pd
 import csv
 import os   
 import pdfkit
-# from asposecells.api import Workbook
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -784,7 +783,7 @@ class RoomService():
 
         cursor.execute("""SELECT e.event_id, e.title, e.description, e.organizer, 
                        r.room_id, r.name AS room_name, r.capacity, r.type,
-                       string_agg(f.name, ', ') AS feature_name, rf.is_working, t.date, 
+                       string_agg(f.name, ', ') AS feature_name, t.date, 
                        to_char(t.start_time, 'HH24:MI') AS start_time, 
                        to_char(t.end_time, 'HH24:MI') AS end_time
                        FROM events e
@@ -795,7 +794,7 @@ class RoomService():
                        INNER JOIN features f ON f.feature_id = rf.feature_id
                        WHERE e.organizer = %s
                        group by e.event_id, e.title, e.description, e.organizer, 
-                       r.room_id, r.name, r.capacity, r.type, rf.is_working, t.date, 
+                       r.room_id, r.name, r.capacity, r.type, t.date, 
                        t.start_time, t.end_time""", (user, ))
         
         my_reservations = cursor.fetchall()

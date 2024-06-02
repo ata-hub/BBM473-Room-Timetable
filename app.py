@@ -1,5 +1,5 @@
-from datetime import datetime, timedelta, date
-from flask import Flask, request, jsonify, render_template, session, redirect, url_for
+from datetime import datetime, timedelta 
+from flask import Flask, request, jsonify, render_template, session,  url_for
 import os
 from service import MyException, RoomService, UserService
 
@@ -343,6 +343,8 @@ def make_reservation():
 def eventsPage():
     # get reservation from backend service
     reservationList = room_service.get_all_my_reservations()
+    if reservationList == "False":
+        reservationList = []
     user_role = session.get("role")
     username = session.get("username")
     room_data = user_service.get_user_rooms()

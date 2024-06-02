@@ -11,6 +11,7 @@
 />
 {% endblock %} {% block body %}
 <h1 class="text-center">Bookings</h1>
+{% if reservationList %}
 <div class="card-container">
   {% for booking in reservationList %}
   <div
@@ -57,6 +58,11 @@
   </div>
   {% endfor %}
 </div>
+{% else %}
+<div class="text-center">
+  <p>No bookings available.</p>
+</div>
+{% endif %}
 
 <!-- Bootstrap Modal -->
 <div
