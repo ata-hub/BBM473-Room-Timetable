@@ -1,7 +1,7 @@
 from db import get_db_connection
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from flask import jsonify, session, send_file
+from flask import session, send_file
 from datetime import timedelta, date, datetime
 import pandas as pd
 import csv
