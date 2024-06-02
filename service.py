@@ -152,12 +152,13 @@ class UserService():
             rooms = cursor.fetchall()
 
         else:
-            cursor.execute("""SELECT  DISTINCT d.name AS dname, r.name AS rname, r.room_id FROM rooms r, departments d
+            cursor.execute("""SELECT r.name AS name, r.room_id FROM rooms r, departments d
                            WHERE r.department_id = d.department_id
-                           """)
+                           AND r.department_id = %s OR r.department_id = 0
+                           """, (user_department, ))
             
-            room_data = cursor.fetchall()
-            rooms = [(str(item["dname"]) + " - " + str(item["rname"])) for item in room_data]
+            rooms = cursor.fetchall()
+            #rooms = [(str(item["dname"]) + " - " + str(item["rname"])) for item in room_data]
 
         return rooms
     
