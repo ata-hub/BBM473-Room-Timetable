@@ -343,6 +343,8 @@ def make_reservation():
 def eventsPage():
     # get reservation from backend service
     reservationList = room_service.get_all_my_reservations()
+    if reservationList == "False":
+        reservationList = []
     user_role = session.get("role")
     room_data = user_service.get_user_rooms()
     print("room_data:", room_data)
