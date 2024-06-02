@@ -76,10 +76,10 @@
   var department = "{{ department }}"; // Embed department variable from Flask
 </script>
 <script type="application/json" id="my-reservations">
-  {{ my_reservations | tojson | safe }}
+  {{ my_reservations | default([]) | tojson | safe }}
 </script>
 <script type="application/json" id="other-reservations">
-  {{ other_reservations | tojson | safe }}
+  {{ other_reservations | default([]) | tojson | safe }}
 </script>
 <script src="{{ url_for('static', filename='javascript/admin.js') }}"></script>
 {% endblock %} {% block is_student %}True{% endblock %}

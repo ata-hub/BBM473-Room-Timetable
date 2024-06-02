@@ -177,6 +177,7 @@ def instructorPage():
 def adminPage():
     time_slots = timeslots('08:00', '20:00')
     room_data = user_service.get_user_rooms()
+    print("admin rooms:", room_data)
     mine = room_service.get_my_reservations_for_day(None)
     other = room_service.get_other_reservarions_for_day(None)
 

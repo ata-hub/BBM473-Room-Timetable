@@ -142,17 +142,17 @@ class UserService():
         rooms = []
 
         if role == 'student': 
-            cursor.execute("""SELECT r.name, r.room_id FROM user_permissions up, rooms r 
+            cursor.execute("""SELECT DISTINCT r.name, r.room_id FROM user_permissions up, rooms r 
                            WHERE up.room_id = r.room_id
                            AND username = %s""", (user, ))
             rooms = cursor.fetchall()
 
         elif role == 'instructor':
-            cursor.execute("SELECT name, room_id FROM rooms WHERE department_id = %s", (user_department, ))
+            cursor.execute("SELECT DISTINCT name, room_id FROM rooms WHERE department_id = %s", (user_department, ))
             rooms = cursor.fetchall()
 
         else:
-            cursor.execute("""SELECT d.name AS dname, r.name AS rname, r.room_id FROM rooms r, departments d
+            cursor.execute("""SELECT  DISTINCT d.name AS dname, r.name AS rname, r.room_id FROM rooms r, departments d
                            WHERE r.department_id = d.department_id
                            """)
             
