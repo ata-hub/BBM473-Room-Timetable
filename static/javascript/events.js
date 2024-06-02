@@ -52,6 +52,7 @@ $('#confirmDelete').on('click', function() {
             // Handle success response
             console.log('Event cancelled successfully');
             // Optionally, update the UI to reflect the cancelled reservation
+            location.reload();
         },
         error: function(error) {
             // Handle error response
