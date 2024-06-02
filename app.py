@@ -344,10 +344,13 @@ def eventsPage():
     # get reservation from backend service
     reservationList = room_service.get_all_my_reservations()
     user_role = session.get("role")
+    username = session.get("username")
     room_data = user_service.get_user_rooms()
     print("room_data:", room_data)
-    return render_template('events.html', reservationList=reservationList, user_role=user_role,
-                           room_data=room_data)
+    return render_template('events.html', reservationList=reservationList, 
+                           user_role=user_role,
+                           room_data=room_data,
+                           username=username)
 
 @app.route('/cancel-reservation', methods=['POST'])  # TODO test et
 def cancel_reservation_route():
