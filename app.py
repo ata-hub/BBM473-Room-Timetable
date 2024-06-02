@@ -257,8 +257,10 @@ def feature_request():
 @app.route('/admin/pending_student_request')
 def pending_student_requests():
     requests = UserService().list_awating_permission_requests()
+    username = session.get("username")
     print("pending student requests:", requests)
-    return render_template('pending_students.html', requests=requests, user_role="admin")
+    return render_template('pending_students.html', requests=requests, user_role="admin",
+                           username=username)
 
 @app.route('/admin/accept_student_request', methods=['POST'])
 def accept_student_requests():
@@ -282,7 +284,9 @@ def accept_student_requests():
 @app.route('/admin/pending_feature_request')
 def pending_feature_requests():
     requests = user_service.list_awating_feature_requests()
-    return render_template('pending_features.html', requests=requests, user_role="admin")
+    username = session.get("username")
+    return render_template('pending_features.html', requests=requests, user_role="admin",
+                           username=username)
 
 @app.route('/admin/accept_feature_request', methods=['POST'])
 def accept_feature_permission():
