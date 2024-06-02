@@ -21,7 +21,13 @@
     <div class="wrapper">
       <nav id="sidebar">
         <div class="sidebar-header">
-          <h3>Bootstrap Sidebar</h3>
+          <h3>
+            <a
+              href="{% if user_role == 'student' %}/student{% elif user_role == 'instructor' %}/instructor{% elif user_role == 'admin' %}/admin{% endif %}"
+            >
+              {{ username }}
+            </a>
+          </h3>
         </div>
         <ul class="list-unstyled components">
           {% if user_role == 'student' %}
@@ -81,7 +87,8 @@
             <a
               href="#"
               class="download"
-              data-toggle="modal" data-target="#downloadModal"
+              data-toggle="modal"
+              data-target="#downloadModal"
               >Download Timetable</a
             >
           </li>
@@ -116,27 +123,46 @@
     </div>
 
     <!-- Download Modal -->
-    <div class="modal fade" id="downloadModal" tabindex="-1" aria-labelledby="downloadModalLabel" aria-hidden="true">
+    <div
+      class="modal fade"
+      id="downloadModal"
+      tabindex="-1"
+      aria-labelledby="downloadModalLabel"
+      aria-hidden="true"
+    >
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="downloadModalLabel">Download Timetable</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <h5 class="modal-title" id="downloadModalLabel">
+              Download Timetable
+            </h5>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
           <div class="modal-body">
             <div class="form-group">
               <label for="startDate">Start Date</label>
-              <input type="date" class="form-control" id="startDate" required>
+              <input type="date" class="form-control" id="startDate" required />
             </div>
             <div class="form-group">
               <label for="endDate">End Date</label>
-              <input type="date" class="form-control" id="endDate" required>
+              <input type="date" class="form-control" id="endDate" required />
             </div>
-            <button type="button" class="btn btn-primary" id="downloadCsv">Download as CSV</button>
-            <button type="button" class="btn btn-primary" id="downloadExcel">Download as Excel</button>
-            <button type="button" class="btn btn-primary" id="downloadPdf">Download as PDF</button>
+            <button type="button" class="btn btn-primary" id="downloadCsv">
+              Download as CSV
+            </button>
+            <button type="button" class="btn btn-primary" id="downloadExcel">
+              Download as Excel
+            </button>
+            <button type="button" class="btn btn-primary" id="downloadPdf">
+              Download as PDF
+            </button>
           </div>
         </div>
       </div>
