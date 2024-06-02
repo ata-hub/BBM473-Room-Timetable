@@ -60,6 +60,7 @@ $(document).ready(function() {
         const title = $('#eventTitle').val();
         const description = $('#eventDescription').val();
         const repeat = $('#eventRepeat').val();
+        console.log("repeat value is:", repeat)
         let endDate = null;
 
         if (startHour.toString().length == 1) {
@@ -74,7 +75,9 @@ $(document).ready(function() {
         const endTime = endHour + ":" + endMinute;
 
         if (repeat !== 'today') {
-            endDate = $('#endDate').val();
+            
+            endDate = $('#endDateHidden').val();
+            console.log("endDate is: ",endDate)
         }
 
         const requestData = {

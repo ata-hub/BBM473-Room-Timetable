@@ -1,4 +1,4 @@
-/* student.css */
+/* instructor.css */
 
 .container {
     display: flex;
@@ -50,11 +50,11 @@
 
 table {
     border-collapse: collapse;
-    width: 100%; /* Occupy entire width */
+    width: auto; /* Adjust width to auto */
+    margin: 20px 0; /* Margin for spacing */
     border: 2px solid #ccc;
     background-color: #fff;
     table-layout: fixed; /* Ensures uniform column width */
-    margin-bottom: 20px;
 }
 
 th, td {
@@ -77,4 +77,21 @@ tr:nth-child(even) {
 
 td:first-child {
     text-align: center; /* Center-align the text in the first column */
+}
+
+.date-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.today-date {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.buttons {
+    display: flex;
+    gap: 10px;
 }

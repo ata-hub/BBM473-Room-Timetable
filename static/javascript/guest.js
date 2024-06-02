@@ -88,7 +88,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     console.log("here88");
                     data.reservations = [];
                 }
-
+                console.log("reservations are:", data.reservations)
                 paintCells(data.reservations);
             })
             .catch(error => {
