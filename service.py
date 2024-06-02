@@ -2,7 +2,7 @@ from db import get_db_connection
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from flask import jsonify, session, send_file
-from datetime import timedelta, date
+from datetime import timedelta, date, datetime
 import pandas as pd
 import csv
 import os   
@@ -348,7 +348,7 @@ class RoomService():
         event_description = reservationDto['description']
         start_time = reservationDto['start_time'] + ":00"   
         end_time = reservationDto['end_time'] +":00"        
-        day = change_date_format(reservationDto['day'])
+        day = reservationDto['day']
         room = reservationDto['room'] 
 
         tx_sql = read_sql_file('./sql/booking_tx.sql')
@@ -368,6 +368,7 @@ class RoomService():
 
             conn.commit()
             return "True"
+        
         except psycopg2.Error as e:
             conn.rollback()
 
@@ -380,7 +381,7 @@ class RoomService():
                 if suggestions:
                     return suggestions
                 else:
-                    return "False"
+                    return "No suggestion"
             else:
                 return "False"
         finally:
@@ -393,8 +394,8 @@ class RoomService():
         event_description = reservationDto['description']
         start_time = reservationDto['start_time'] + ":00"   
         end_time = reservationDto['end_time'] +":00"
-        start_day = change_date_format(reservationDto['start_day'])
-        end_day = change_date_format(reservationDto['end_day'])
+        start_day = reservationDto['start_day']
+        end_day = reservationDto['end_day']
         room = reservationDto['room']
         interval = reservationDto['interval']
 
@@ -417,6 +418,7 @@ class RoomService():
 
             conn.commit()
             return "True"
+        
         except psycopg2.Error as e:
             conn.rollback()
 
@@ -425,7 +427,11 @@ class RoomService():
                 'start_time', 'end_time', 'start_day', 'end_day', 'room', 'interval'}}
 
                 suggestions = self.make_recurring_suggestion(suggestionDto)
-                return suggestions
+
+                if suggestions:
+                    return suggestions
+                else:
+                    return "No suggestion"
             else:
                 return "False"
         finally:
@@ -529,7 +535,7 @@ class RoomService():
         department = session.get('department')
         start_time = reservationDto['start_time'] + ":00"   
         end_time = reservationDto['end_time'] +":00"        
-        day = change_date_format(reservationDto['day'])
+        day = reservationDto['day']
         room = reservationDto['room']
 
         tx_sql = read_sql_file('./sql/make_suggestion_tx.sql')
@@ -624,8 +630,8 @@ class RoomService():
         department = session.get('department')
         start_time = reservationDto['start_time'] + ":00"   
         end_time = reservationDto['end_time'] +":00"
-        start_day = change_date_format(reservationDto['start_day'])
-        end_day = change_date_format(reservationDto['end_day'])
+        start_day = reservationDto['start_day']
+        end_day = reservationDto['end_day']
         room = reservationDto['room']
         interval = reservationDto['interval']
 
@@ -778,7 +784,7 @@ class RoomService():
 
         cursor.execute("""SELECT e.event_id, e.title, e.description, e.organizer, 
                        r.room_id, r.name AS room_name, r.capacity, r.type,
-                       f.name AS feature_name, rf.is_working, t.date, 
+                       string_agg(f.name, ', ') AS feature_name, rf.is_working, t.date, 
                        to_char(t.start_time, 'HH24:MI') AS start_time, 
                        to_char(t.end_time, 'HH24:MI') AS end_time
                        FROM events e
@@ -787,7 +793,10 @@ class RoomService():
                        INNER JOIN rooms r ON r.room_id = b.room_id
                        INNER JOIN room_features rf ON r.room_id = rf.room_id
                        INNER JOIN features f ON f.feature_id = rf.feature_id
-                       WHERE e.organizer = %s""", (user, ))
+                       WHERE e.organizer = %s
+                       group by e.event_id, e.title, e.description, e.organizer, 
+                       r.room_id, r.name, r.capacity, r.type, rf.is_working, t.date, 
+                       t.start_time, t.end_time""", (user, ))
         
         my_reservations = cursor.fetchall()
 
@@ -873,13 +882,18 @@ class RoomService():
             today = date.today()
             start = today - timedelta(days=today.weekday())
             end = start + timedelta(days=6)
-            start = start.strftime("%d-%m-%Y") 
-            end = end.strftime("%d-%m-%Y")
+
+        start = datetime.strptime(start, '%Y-%m-%d').strftime("%d-%m-%Y")
+        end = datetime.strptime(end, '%Y-%m-%d').strftime("%d-%m-%Y")
 
         timetable = self.get_timetable(start, end, department) 
-        timetable = [dict(row) for row in timetable]
         
-        fieldnames = ['event_id', 'title', 'description', 'room_id', 'date', 'start_time', 'end_time']
+        if timetable != "False":
+            timetable = [dict(row) for row in timetable]
+        else:
+            timetable = []
+        
+        fieldnames = ['event_id', 'title', 'description', 'room_id', 'date', 'room_name', 'start_time', 'end_time']
 
         with open('timetable.csv', 'w', newline='') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)

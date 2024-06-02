@@ -12,9 +12,9 @@ user_service = UserService()
 room_service = RoomService()
 
 repeatDict = {
-    'Weekly': 7,
-    'Monthly': 30,
-    'Yearly': 365
+    'weekly': 7,
+    'monthly': 30,
+    'yearly': 365
 }
 
 def timeslots(start_time_str, end_time_str):
@@ -192,7 +192,7 @@ def adminPage():
 def student_request():
     student_username = request.form.get('studentUsername')
     student_room = request.form.get('studentRoom')
-    # TODO add student request to db (permissions table and student_request_permission)
+    
     requestDto = {
         'username': student_username,
         'room': student_room
@@ -280,7 +280,7 @@ def accept_student_requests():
 
 @app.route('/admin/pending_feature_request')
 def pending_feature_requests():
-    requests = UserService().list_awating_feature_requests()
+    requests = user_service.list_awating_feature_requests()
     return render_template('pending_features.html', requests=requests, user_role="admin")
 
 @app.route('/admin/accept_feature_request', methods=['POST'])
@@ -291,58 +291,72 @@ def accept_feature_permission():
     acceptance = data.get('acceptance')
     requestDto={"request_id": request_id, "acceptance": acceptance}
     try:
-        result = RoomService().add_new_feature(requestDto)
+        result = room_service.add_new_feature(requestDto)
         if result:
             return jsonify({"success": True, "message": result})
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 400
 
-# @app.route('/reservation', methods=['POST'])
-# def make_reservation():
-#     day = request.form.get('eventDate')
-#     start_time = request.form.get('startTimeHour') + ':' + request.form.get('startTimeMinute')
-#     end_time = request.form.get('endTimeHour') + ':' + request.form.get('endTimeMinute')
-#     room = request.form.get('room')
-#     title = request.form.get('eventTitle')
-#     description = request.form.get('eventDescription')
-#     repeat = request.form.get('eventRepeat')
+@app.route('/reservation', methods=['POST'])  
+def make_reservation():
+    day = request.form.get('day')
+    start_time = request.form.get('start_time') 
+    end_time = request.form.get('end_time') 
+    room = request.form.get('room')
+    title = request.form.get('title')
+    description = request.form.get('description')
+    repeat = request.form.get('repeat')
+    end_date = request.form.get('end_date')
 
-#     requestDto = {
-#             'title': title, 
-#             'description': description, 
-#             'start_time': start_time,
-#             'end_time': end_time,
-#             'room': room
-#         }
+    requestDto = {
+            'title': title, 
+            'description': description, 
+            'start_time': start_time,
+            'end_time': end_time,
+            'room': room
+        }
 
-#     if repeat == 'Today':
-#         requestDto['day'] = day
+    try:
+        if repeat == 'today':
+            requestDto['day'] = day
 
+            result = room_service.make_reservation(requestDto)
+        else:
+            requestDto['start_day'] = day
+            requestDto['end_day'] = end_date
+            requestDto['interval'] = repeatDict[repeat]
+            
+            result = room_service.make_recurring_reservation(requestDto)
 
-#     else:
-#         requestDto['start_day'] = day
-#         requestDto['end_day'] = request.form.get('endDate')
-#         requestDto['interval'] = repeatDict[repeat]
-        
+        if result == "True":
+            return jsonify({"success": True}), 200
+        elif result == "No suggestion":
+            return jsonify({"success": False, "message": "No suggestions"}), 400
+        elif result == "False":
+            return jsonify({"success": False, "message": "error"}), 400
+        else:
+            return jsonify({"success": False, "suggestions": result}), 400
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
 
 @app.route('/events', methods=['GET'])
 def eventsPage():
     # get reservation from backend service
-    reservationList = RoomService().get_all_my_reservations()
+    reservationList = room_service.get_all_my_reservations()
     user_role = session.get("role")
     room_data = user_service.get_user_rooms()
     print("room_data:", room_data)
     return render_template('events.html', reservationList=reservationList, user_role=user_role,
                            room_data=room_data)
 
-@app.route('/cancel-reservation', methods=['POST'])
+@app.route('/cancel-reservation', methods=['POST'])  # TODO test et
 def cancel_reservation_route():
     if request.method == 'POST':
         # Get the event_id from the request data
         event_id = request.form.get('event_id')
 
         # Call the cancel_reservation function from your service.py
-        result = RoomService().cancel_reservation(event_id)
+        result = room_service.cancel_reservation(event_id)
 
         # You might want to return a response based on the result of the cancellation
         if result == "True":
@@ -374,7 +388,7 @@ def change_event_details_controller():
         elif field['key'] == 'description':
             eventDto['description'] = field['value']
 
-    result = RoomService().change_event_details(eventDto)
+    result = room_service.change_event_details(eventDto)
     print("Change event result:", result)
     return jsonify({'result': result})
 
@@ -406,9 +420,16 @@ def change_reservation_controller():
         elif field['key'] == 'room':
             changeDto['room'] = field['value']
 
-    result = RoomService().change_reservation(changeDto)
+    result = room_service.change_reservation(changeDto)
     print("Change reservation result:", result)
     return jsonify({'result': result})
+
+@app.route('/export', methods=['GET'])
+def download_timetable():
+    format = request.args.get('format')  
+    start = request.args.get('start')
+    end = request.args.get('end')
+    return room_service.export_timetable(start, end, format)
 
 if __name__ == "__main__":
     app.run(debug=True, port=7001)
