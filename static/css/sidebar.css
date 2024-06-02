@@ -167,3 +167,42 @@ a.article:hover {
         display: none;
     }
 }
+
+
+/* ---------------------------------------------------
+    DOWNLOAD BUTTONS
+----------------------------------------------------- */
+
+.modal-body button {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.modal-body button:last-child {
+    margin-bottom: 0;
+}
+
+.modal-body .btn {
+    font-size: 1.1em;
+}
+
+.modal-header {
+    background-color: #007bff;
+    color: white;
+}
+
+.modal-footer .btn {
+    font-size: 1.1em;
+}
+
+.modal-content {
+    border-radius: 10px;
+}
+
+#downloadModal .modal-dialog {
+    max-width: 400px;
+}
+
+.modal-body .form-group {
+    margin-bottom: 20px;
+}

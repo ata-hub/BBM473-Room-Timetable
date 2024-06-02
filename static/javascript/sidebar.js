@@ -5,6 +5,39 @@ $(document).ready(function () {
         $('#sidebar').toggleClass('active');
         console.log('Toggle button clicked!');
     });
+
+    $('#downloadCsv').on('click', function() {
+        const startDate = $('#startDate').val();
+        const endDate = $('#endDate').val();
+        if (startDate && endDate) {
+            window.location.href = `/export?format=csv&start=${startDate}&end=${endDate}`;
+            $('#downloadModal').modal('hide');
+        } else {
+            alert("Please select both start and end dates.");
+        }
+    });
+
+    $('#downloadExcel').on('click', function() {
+        const startDate = $('#startDate').val();
+        const endDate = $('#endDate').val();
+        if (startDate && endDate) {
+            window.location.href = `/export?format=excel&start=${startDate}&end=${endDate}`;
+            $('#downloadModal').modal('hide');
+        } else {
+            alert("Please select both start and end dates.");
+        }
+    });
+
+    $('#downloadPdf').on('click', function() {
+        const startDate = $('#startDate').val();
+        const endDate = $('#endDate').val();
+        if (startDate && endDate) {
+            window.location.href = `/export?format=pdf&start=${startDate}&end=${endDate}`;
+            $('#downloadModal').modal('hide');
+        } else {
+            alert("Please select both start and end dates.");
+        }
+    });
 });
 document.addEventListener("DOMContentLoaded", function() {
     var sidebar = document.querySelector('.sidebar');

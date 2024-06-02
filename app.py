@@ -192,7 +192,7 @@ def adminPage():
 def student_request():
     student_username = request.form.get('studentUsername')
     student_room = request.form.get('studentRoom')
-    # TODO add student request to db (permissions table and student_request_permission)
+    
     requestDto = {
         'username': student_username,
         'room': student_room
@@ -280,7 +280,7 @@ def accept_student_requests():
 
 @app.route('/admin/pending_feature_request')
 def pending_feature_requests():
-    requests = UserService().list_awating_feature_requests()
+    requests = user_service.list_awating_feature_requests()
     return render_template('pending_features.html', requests=requests, user_role="admin")
 
 @app.route('/admin/accept_feature_request', methods=['POST'])
@@ -291,7 +291,7 @@ def accept_feature_permission():
     acceptance = data.get('acceptance')
     requestDto={"request_id": request_id, "acceptance": acceptance}
     try:
-        result = RoomService().add_new_feature(requestDto)
+        result = room_service.add_new_feature(requestDto)
         if result:
             return jsonify({"success": True, "message": result})
     except Exception as e:
@@ -339,11 +339,10 @@ def make_reservation():
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 
-
 @app.route('/events', methods=['GET'])
 def eventsPage():
     # get reservation from backend service
-    reservationList = RoomService().get_all_my_reservations()
+    reservationList = room_service.get_all_my_reservations()
     user_role = session.get("role")
     room_data = user_service.get_user_rooms()
     print("room_data:", room_data)
@@ -357,7 +356,7 @@ def cancel_reservation_route():
         event_id = request.form.get('event_id')
 
         # Call the cancel_reservation function from your service.py
-        result = RoomService().cancel_reservation(event_id)
+        result = room_service.cancel_reservation(event_id)
 
         # You might want to return a response based on the result of the cancellation
         if result == "True":
@@ -389,7 +388,7 @@ def change_event_details_controller():
         elif field['key'] == 'description':
             eventDto['description'] = field['value']
 
-    result = RoomService().change_event_details(eventDto)
+    result = room_service.change_event_details(eventDto)
     print("Change event result:", result)
     return jsonify({'result': result})
 
@@ -421,13 +420,16 @@ def change_reservation_controller():
         elif field['key'] == 'room':
             changeDto['room'] = field['value']
 
-    result = RoomService().change_reservation(changeDto)
+    result = room_service.change_reservation(changeDto)
     print("Change reservation result:", result)
     return jsonify({'result': result})
 
-# TODO download deyince csv - excel - pdf seçenekleri
-
-# TODO download seçeneği seçince otomatik indirme
+@app.route('/export', methods=['GET'])
+def download_timetable():
+    format = request.args.get('format')  
+    start = request.args.get('start')
+    end = request.args.get('end')
+    return room_service.export_timetable(start, end, format)
 
 if __name__ == "__main__":
     app.run(debug=True, port=7001)
