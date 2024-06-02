@@ -348,7 +348,7 @@ class RoomService():
         event_description = reservationDto['description']
         start_time = reservationDto['start_time'] + ":00"   
         end_time = reservationDto['end_time'] +":00"        
-        day = change_date_format(reservationDto['day'])
+        day = reservationDto['day']
         room = reservationDto['room'] 
 
         tx_sql = read_sql_file('./sql/booking_tx.sql')
@@ -368,6 +368,7 @@ class RoomService():
 
             conn.commit()
             return "True"
+        
         except psycopg2.Error as e:
             conn.rollback()
 
@@ -380,7 +381,7 @@ class RoomService():
                 if suggestions:
                     return suggestions
                 else:
-                    return "False"
+                    return "No suggestion"
             else:
                 return "False"
         finally:
@@ -393,8 +394,8 @@ class RoomService():
         event_description = reservationDto['description']
         start_time = reservationDto['start_time'] + ":00"   
         end_time = reservationDto['end_time'] +":00"
-        start_day = change_date_format(reservationDto['start_day'])
-        end_day = change_date_format(reservationDto['end_day'])
+        start_day = reservationDto['start_day']
+        end_day = reservationDto['end_day']
         room = reservationDto['room']
         interval = reservationDto['interval']
 
@@ -417,6 +418,7 @@ class RoomService():
 
             conn.commit()
             return "True"
+        
         except psycopg2.Error as e:
             conn.rollback()
 
@@ -425,7 +427,11 @@ class RoomService():
                 'start_time', 'end_time', 'start_day', 'end_day', 'room', 'interval'}}
 
                 suggestions = self.make_recurring_suggestion(suggestionDto)
-                return suggestions
+
+                if suggestions:
+                    return suggestions
+                else:
+                    return "No suggestion"
             else:
                 return "False"
         finally:
@@ -529,7 +535,7 @@ class RoomService():
         department = session.get('department')
         start_time = reservationDto['start_time'] + ":00"   
         end_time = reservationDto['end_time'] +":00"        
-        day = change_date_format(reservationDto['day'])
+        day = reservationDto['day']
         room = reservationDto['room']
 
         tx_sql = read_sql_file('./sql/make_suggestion_tx.sql')
@@ -624,8 +630,8 @@ class RoomService():
         department = session.get('department')
         start_time = reservationDto['start_time'] + ":00"   
         end_time = reservationDto['end_time'] +":00"
-        start_day = change_date_format(reservationDto['start_day'])
-        end_day = change_date_format(reservationDto['end_day'])
+        start_day = reservationDto['start_day']
+        end_day = reservationDto['end_day']
         room = reservationDto['room']
         interval = reservationDto['interval']
 

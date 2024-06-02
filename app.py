@@ -12,9 +12,9 @@ user_service = UserService()
 room_service = RoomService()
 
 repeatDict = {
-    'Weekly': 7,
-    'Monthly': 30,
-    'Yearly': 365
+    'weekly': 7,
+    'monthly': 30,
+    'yearly': 365
 }
 
 def timeslots(start_time_str, end_time_str):
@@ -297,33 +297,48 @@ def accept_feature_permission():
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 400
 
-# @app.route('/reservation', methods=['POST'])
-# def make_reservation():
-#     day = request.form.get('eventDate')
-#     start_time = request.form.get('startTimeHour') + ':' + request.form.get('startTimeMinute')
-#     end_time = request.form.get('endTimeHour') + ':' + request.form.get('endTimeMinute')
-#     room = request.form.get('room')
-#     title = request.form.get('eventTitle')
-#     description = request.form.get('eventDescription')
-#     repeat = request.form.get('eventRepeat')
+@app.route('/reservation', methods=['POST'])  
+def make_reservation():
+    day = request.form.get('day')
+    start_time = request.form.get('start_time') 
+    end_time = request.form.get('end_time') 
+    room = request.form.get('room')
+    title = request.form.get('title')
+    description = request.form.get('description')
+    repeat = request.form.get('repeat')
+    end_date = request.form.get('end_date')
 
-#     requestDto = {
-#             'title': title, 
-#             'description': description, 
-#             'start_time': start_time,
-#             'end_time': end_time,
-#             'room': room
-#         }
+    requestDto = {
+            'title': title, 
+            'description': description, 
+            'start_time': start_time,
+            'end_time': end_time,
+            'room': room
+        }
 
-#     if repeat == 'Today':
-#         requestDto['day'] = day
+    try:
+        if repeat == 'today':
+            requestDto['day'] = day
 
+            result = room_service.make_reservation(requestDto)
+        else:
+            requestDto['start_day'] = day
+            requestDto['end_day'] = end_date
+            requestDto['interval'] = repeatDict[repeat]
+            
+            result = room_service.make_recurring_reservation(requestDto)
 
-#     else:
-#         requestDto['start_day'] = day
-#         requestDto['end_day'] = request.form.get('endDate')
-#         requestDto['interval'] = repeatDict[repeat]
-        
+        if result == "True":
+            return jsonify({"success": True}), 200
+        elif result == "No suggestion":
+            return jsonify({"success": False, "message": "No suggestions"}), 400
+        elif result == "False":
+            return jsonify({"success": False, "message": "error"}), 400
+        else:
+            return jsonify({"success": False, "suggestions": result}), 400
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
 
 @app.route('/events', methods=['GET'])
 def eventsPage():
@@ -335,7 +350,7 @@ def eventsPage():
     return render_template('events.html', reservationList=reservationList, user_role=user_role,
                            room_data=room_data)
 
-@app.route('/cancel-reservation', methods=['POST'])
+@app.route('/cancel-reservation', methods=['POST'])  # TODO test et
 def cancel_reservation_route():
     if request.method == 'POST':
         # Get the event_id from the request data
@@ -409,6 +424,10 @@ def change_reservation_controller():
     result = RoomService().change_reservation(changeDto)
     print("Change reservation result:", result)
     return jsonify({'result': result})
+
+# TODO download deyince csv - excel - pdf seçenekleri
+
+# TODO download seçeneği seçince otomatik indirme
 
 if __name__ == "__main__":
     app.run(debug=True, port=7001)
