@@ -92,6 +92,8 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     function fetchReservations(day) {
+        // Show loading popup
+        $('#loading-popup').modal('show');
         fetch(`/get-by-day?day=${day}`)
             .then(response => response.json())
             .then(data => {
@@ -103,10 +105,12 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (data.other_reservations === "False") {
                     data.other_reservations = [];
                 }
+                $('#loading-popup').modal('hide');
                 paintCells(data.my_reservations, data.other_reservations);
             })
             .catch(error => {
                 console.error('Error fetching reservations:', error);
+                $('#loading-popup').modal('hide');
             });
     }
 

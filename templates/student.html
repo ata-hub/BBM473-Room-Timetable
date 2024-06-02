@@ -36,7 +36,10 @@
       <tr>
         <td>{{ room.name }}</td>
         {% for time_slot in time_slots %}
-        <td data-room-name="{{ room.name }}" data-time-slot="{{ time_slot }}"></td>
+        <td
+          data-room-name="{{ room.name }}"
+          data-time-slot="{{ time_slot }}"
+        ></td>
         {% endfor %}
       </tr>
       {% endfor %}
@@ -48,12 +51,35 @@
     <span class="your-reservations"></span> Your Reservations
   </div>
 </div>
+<!-- Loading Popup -->
+<div
+  id="loading-popup"
+  class="modal fade"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="loading-popup-label"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body text-center">
+        <div class="spinner-border" role="status">
+          <span class="sr-only">Loading...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 <script>
   var userRole = "{{ user_role }}"; // Embed is_student variable from Flask
   var username = "{{ username }}"; // Embed username variable from Flask
   var department = "{{ department }}"; // Embed department variable from Flask
 </script>
-<script type="application/json" id="my-reservations">{{ my_reservations | tojson | safe }}</script>
-<script type="application/json" id="other-reservations">{{ other_reservations | tojson | safe }}</script>
+<script type="application/json" id="my-reservations">
+  {{ my_reservations | tojson | safe }}
+</script>
+<script type="application/json" id="other-reservations">
+  {{ other_reservations | tojson | safe }}
+</script>
 <script src="{{ url_for('static', filename='javascript/student.js') }}"></script>
 {% endblock %} {% block is_student %}True{% endblock %}
