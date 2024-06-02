@@ -1,5 +1,5 @@
-from datetime import datetime, timedelta, date
-from flask import Flask, request, jsonify, render_template, session, redirect, url_for
+from datetime import datetime, timedelta 
+from flask import Flask, request, jsonify, render_template, session,  url_for
 import os
 from service import MyException, RoomService, UserService
 
