@@ -74,7 +74,7 @@ $(document).ready(function() {
         const endTime = endHour + ":" + endMinute;
 
         if (repeat !== 'today') {
-            endDate = $('#endDate').val();
+            endDate = $('#endReservationDate').val();
         }
 
         const requestData = {
@@ -98,6 +98,9 @@ $(document).ready(function() {
                     $('#successModal').modal('show');
                     // Clear form fields
                     resetFormFields();
+                    setTimeout(function() {
+                        location.reload(); // Reload the page to refresh the table data
+                    }, 2000); 
                 } else if (response.message === "No suggestions") {
                     // Handle case where no suggestions are available
                     alert('No suggestions available.');
@@ -204,7 +207,7 @@ $(document).ready(function() {
         const endTime = endHour + ":" + endMinute;
 
         if (repeat !== 'today') {
-            endDate = $('#endDate').val();
+            endDate = $('#endReservationDate').val();
         }
 
         const requestData = {
@@ -231,6 +234,10 @@ $(document).ready(function() {
                     // Ensure backdrop is removed
                     $('body').removeClass('modal-open');
                     $('.modal-backdrop').remove();
+
+                    setTimeout(function() {
+                        location.reload(); // Reload the page to refresh the table data
+                    }, 2000); 
                 } else {
                     $('#failureModal').modal('show');
                     alert(response.message);

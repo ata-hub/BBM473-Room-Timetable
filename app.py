@@ -132,7 +132,7 @@ def get_by_department():
     
     if reservations == "False":
         reservations = []
-
+    
     return jsonify({
         'reservations': reservations
     })
@@ -140,20 +140,30 @@ def get_by_department():
 @app.route('/student')  # TODO  bunu test et
 def studentPage():
     time_slots = timeslots('08:00', '20:00')
-    room_data = user_service.get_user_rooms()
+    dep_rooms = user_service.get_department_rooms(session.get('department'))
+    user_rooms = user_service.get_user_rooms()
     mine = room_service.get_my_reservations_for_day(None)
     other = room_service.get_other_reservarions_for_day(None)
 
+    if mine == "False":
+        mine = []
+    if other == "False":
+        other = []
+
     return render_template('student.html', 
-                           room_data=room_data, 
+                           room_data=user_rooms,
+                           dep_rooms=dep_rooms, 
                            time_slots=time_slots, 
                            user_role="student",
+                           my_reservations=mine, 
+                           other_reservations=other,
                            username=session.get('username'),
                            department=session.get('department'))
 
 @app.route('/instructor')
 def instructorPage():
     room_data = user_service.get_user_rooms()
+    dep_rooms = user_service.get_department_rooms(session.get('department'))
     mine = room_service.get_my_reservations_for_day(None)
     other = room_service.get_other_reservarions_for_day(None)
     time_slots = timeslots('08:00', '20:00')
@@ -166,6 +176,7 @@ def instructorPage():
 
     return render_template('instructor.html', 
                            room_data=room_data, 
+                           dep_rooms=dep_rooms, 
                            time_slots=time_slots, 
                            user_role="instructor",
                            my_reservations=mine, 
@@ -177,13 +188,22 @@ def instructorPage():
 def adminPage():
     time_slots = timeslots('08:00', '20:00')
     room_data = user_service.get_user_rooms()
+    dep_rooms = user_service.get_department_rooms(session.get('department'))
     mine = room_service.get_my_reservations_for_day(None)
     other = room_service.get_other_reservarions_for_day(None)
 
+    if mine == "False":
+        mine = []
+    if other == "False":
+        other = []
+
     return render_template('admin.html',
                             room_data=room_data,
+                            dep_rooms=dep_rooms, 
                             time_slots=time_slots,
                             user_role="admin",
+                            my_reservations=mine, 
+                            other_reservations=other,
                             username=session.get('username'),
                             department=session.get('department'))
 
@@ -315,13 +335,15 @@ def make_reservation():
             'end_time': end_time,
             'room': room
         }
-
+    print("try1: ", requestDto)
     try:
         if repeat == 'today':
+            print("try2")
             requestDto['day'] = day
 
             result = room_service.make_reservation(requestDto)
         else:
+            print("try3")
             requestDto['start_day'] = day
             requestDto['end_day'] = end_date
             requestDto['interval'] = repeatDict[repeat]

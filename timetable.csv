@@ -1,8 +1,11 @@
 event_id,title,description,room_id,date,room_name,start_time,end_time
-18,ggm110,course,6,2024-06-03,D3,08:00,10:00
-19,ggm220,course,5,2024-06-03,D2,08:00,10:00
-20,ggm330,course,6,2024-06-04,D3,11:00,13:00
-20,ggm330,course,6,2024-06-11,D3,11:00,13:00
-21,ggm440,course,5,2024-06-04,D2,11:00,13:00
-21,ggm440,course,5,2024-06-11,D2,11:00,13:00
-22,ggm550,course,6,2024-06-05,D3,14:00,16:00
+25,ggm660,course123,4,2024-06-06,D1,08:00,11:00
+28,BBM434,none,6,2024-06-17,D3,10:00,14:00
+28,BBM434,none,6,2024-06-24,D3,10:00,14:00
+29,BBBBM498,none,5,2024-06-17,D2,10:00,14:00
+30,acm event,acm event,4,2024-06-05,D1,16:00,17:00
+30,acm event,acm event,4,2024-06-12,D1,16:00,17:00
+30,acm event,acm event,4,2024-06-19,D1,16:00,17:00
+37,Project Meeting,meeting,4,2024-06-03,D1,15:00,16:30
+38,Coffee Event,coffee event,4,2024-06-03,D1,08:30,09:00
+39,ggm110,course,4,2024-06-03,D1,10:00,11:30
