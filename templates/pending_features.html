@@ -17,8 +17,8 @@
     <div class="card mb-3">
       <div class="card-body d-flex justify-content-between align-items-center">
         <div>
-          <h5 class="card-title">Feature ID: {{ request.request_id }}</h5>
-          <h5 class="card-title">Room: {{request.room_id}}</h5>
+          <h5 class="card-title">Feature Name: {{ request.feature_name }}</h5>
+          <h5 class="card-title">Room: {{request.name}}</h5>
 
           {% if request.description %}
           <p class="card-text">Description: {{ request.description }}</p>

@@ -127,9 +127,11 @@ class UserService():
         conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         # filter permissons by admin's department
-        cursor.execute("""SELECT fr.request_id, fr.room_id, fr.feature_id, fr.description, r.name 
-                       FROM feature_requests fr, rooms r 
-                       WHERE fr.room_id = r.room_id AND r.department_id = %s""", (department, ))
+        cursor.execute("""SELECT fr.request_id, fr.room_id, fr.feature_id, fr.description, 
+                       r.name AS name, f.name AS feature_name
+                       FROM feature_requests fr, rooms r, features f
+                       WHERE fr.room_id = r.room_id AND fr.feature_id = f.feature_id 
+                       AND r.department_id = %s""", (department, ))
         requests = cursor.fetchall()
         return requests
 
@@ -152,12 +154,13 @@ class UserService():
             rooms = cursor.fetchall()
 
         else:
-            cursor.execute("""SELECT d.name AS dname, r.name AS rname, r.room_id FROM rooms r, departments d
+            cursor.execute("""SELECT r.name AS name, r.room_id FROM rooms r, departments d
                            WHERE r.department_id = d.department_id
-                           """)
+                           AND r.department_id = %s OR r.department_id = 0
+                           """, (user_department, ))
             
-            room_data = cursor.fetchall()
-            rooms = [(str(item["dname"]) + " - " + str(item["rname"])) for item in room_data]
+            rooms = cursor.fetchall()
+            # rooms = [(str(item["dname"]) + " - " + str(item["rname"])) for item in room_data]
 
         return rooms
     
@@ -238,7 +241,8 @@ class RoomService():
                            WHERE up.room_id = r.room_id
                            AND r.room_id = rf.room_id 
                            AND rf.feature_id = f.feature_id
-                           AND username = %s""", (user, ))
+                           AND username = %s
+                           AND f.is_accepted = true""", (user, ))
             rooms = cursor.fetchall()
 
         elif role == 'instructor':
@@ -246,7 +250,8 @@ class RoomService():
                            FROM rooms r, room_features rf, features f 
                            WHERE r.room_id = rf.room_id
                            AND rf.feature_id = f.feature_id
-                           AND r.department_id = %s""", (user_department, ))
+                           AND r.department_id = %s
+                           AND f.is_accepted = true""", (user_department, ))
             rooms = cursor.fetchall()
 
         else:
@@ -255,7 +260,8 @@ class RoomService():
                            WHERE r.department_id = d.department_id
                            AND r.room_id = rf.room_id
                            AND rf.feature_id = f.feature_id
-                           AND d.department_id = %s OR d.department_id = 0""", (user_department, ))
+                           AND d.department_id = %s OR d.department_id = 0
+                           AND f.is_accepted = true""", (user_department, ))
             
             room_data = cursor.fetchall()
             rooms = [(str(item["departmant_name"]) + " - " + str(item["room_name"])) for item in room_data]
@@ -265,7 +271,7 @@ class RoomService():
     def list_features(self): # this is for listing all possible features for request
         conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
-        cursor.execute("SELECT name, feature_id FROM features")
+        cursor.execute("SELECT name, feature_id FROM features WHERE is_accepted = true")
         features = cursor.fetchall()
         return features  
 
@@ -292,8 +298,17 @@ class RoomService():
             }) 
             conn.commit()
         elif new_feature:  
-            cursor.execute("""INSERT INTO feature_requests (description, room_id)
-                           VALUES (%s, %s)""", (new_feature, room_id))
+            cursor.execute("INSERT INTO features (name, is_accepted) VALUES (%s, %s) RETURNING feature_id", (new_feature, False))
+            conn.commit()
+
+            new_feature_id = cursor.fetchone()
+            print("feature id: ", new_feature_id)
+            id = new_feature_id['feature_id']
+
+            print("just id: ", id)
+
+            cursor.execute("""INSERT INTO feature_requests (description, room_id, feature_id)
+                           VALUES (%s, %s, %s)""", (new_feature, room_id, id))
             conn.commit()
         
         conn.close()
@@ -310,12 +325,13 @@ class RoomService():
         # eğer bu features tableında varsa -room_featuresda workinge çevir
         # eğer yoksa bir de featuresa ekle
         if acceptance:
-            cursor.execute("""SELECT * FROM feature_requests 
-                           WHERE request_id = %s""", (request_id, ))
+            cursor.execute("""SELECT fr.*, f.is_accepted FROM feature_requests fr, features f
+                           WHERE fr.feature_id = f.feature_id 
+                           AND fr.request_id = %s""", (request_id, ))
             
             request = cursor.fetchone()
 
-            if request["feature_id"]:  # if adding existing feature
+            if request["is_accepted"] == True:  # if adding existing feature
                 tx_sql = read_sql_file("./sql/add_existing_feature.sql")
 
                 cursor.execute(tx_sql, {
@@ -326,9 +342,9 @@ class RoomService():
                 conn.commit()
             else:
                 tx_sql = read_sql_file("./sql/add_new_feature.sql")
-
+                
                 cursor.execute(tx_sql, {
-                    'description': request["description"],
+                    'feature_var': request["feature_id"],
                     'room_id': request["room_id"]
                 })
 
@@ -754,7 +770,7 @@ class RoomService():
             # end = start + timedelta(days=6) 
             start = start.strftime("%d-%m-%Y") 
             end = start
-     
+        
         conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
 
@@ -793,7 +809,8 @@ class RoomService():
                        INNER JOIN room_features rf ON r.room_id = rf.room_id
                        INNER JOIN features f ON f.feature_id = rf.feature_id
                        WHERE e.organizer = %s
-                       group by e.event_id, e.title, e.description, e.organizer, 
+                       AND f.is_accepted = true 
+                       GROUP BY e.event_id, e.title, e.description, e.organizer, 
                        r.room_id, r.name, r.capacity, r.type, t.date, 
                        t.start_time, t.end_time""", (user, ))
         
@@ -822,7 +839,8 @@ class RoomService():
                        INNER JOIN rooms r ON r.room_id = b.room_id
                        INNER JOIN room_features rf ON r.room_id = rf.room_id
                        INNER JOIN features f ON f.feature_id = rf.feature_id
-                       WHERE e.organizer = %s AND t.date = to_date(%s, 'dd-mm-yyyy')""", (user, day))
+                       WHERE e.organizer = %s AND t.date = to_date(%s, 'dd-mm-yyyy')
+                       AND f.is_accepted = true """, (user, day))
         
         my_reservations = cursor.fetchall()
 
@@ -851,7 +869,8 @@ class RoomService():
                        INNER JOIN room_features rf ON r.room_id = rf.room_id
                        INNER JOIN features f ON f.feature_id = rf.feature_id
                        WHERE e.organizer <> %s AND r.department_id = %s
-                       AND t.date = to_date(%s, 'dd-mm-yyyy')""", (user, department, day))
+                       AND t.date = to_date(%s, 'dd-mm-yyyy')
+                       AND f.is_accepted = true """, (user, department, day))
         
         other_reservations = cursor.fetchall()
 
